@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 180" role="img" aria-label="Tudo & Tal">
+  <rect width="520" height="180" rx="30" fill="#fff9f5"/>
+  <g fill="none" stroke="#b96a69" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M96 56c0-17 14-30 31-30s31 13 31 30c0 11-6 18-16 25l-15 10"/>
+    <path d="M127 91 62 132h130z"/>
+    <path d="M219 59c16-22 52-3 29 26l-29 31-29-31c-23-29 13-48 29-26z"/>
+  </g>
+  <text x="270" y="86" text-anchor="middle" font-family="Georgia,serif" font-size="46" font-weight="700" fill="#2f2521">tudo &amp; tal</text>
+  <text x="273" y="125" text-anchor="middle" font-family="Arial,sans-serif" font-size="17" letter-spacing="5" fill="#ae8050">BRECHÓ</text>
+</svg>
