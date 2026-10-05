@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#b96a69">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Tudo & Tal">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="assets/icon.svg">
+  <link rel="stylesheet" href="styles.css">
+  <title>Tudo & Tal</title>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img src="assets/logo.svg" alt="Tudo & Tal">
+      <div>
+        <strong>Tudo & Tal</strong>
+        <span>Estoque, vendas e consignação</span>
+      </div>
+    </div>
+    <button id="installBtn" class="ghost hidden">Instalar</button>
+  </header>
+
+  <main id="app">
+    <section id="view-dashboard" class="view active">
+      <div class="hero">
+        <div>
+          <p class="eyebrow">VISÃO GERAL</p>
+          <h1>Seu brechó no celular</h1>
+          <p>Cadastre, etiquete, venda, acompanhe estoque, comissão e repasses.</p>
+        </div>
+        <button class="primary" data-nav="produto-form">+ Novo produto</button>
+      </div>
+      <div id="dashboardCards" class="cards"></div>
+      <div class="panel">
+        <div class="panel-title">
+          <h2>Ações rápidas</h2>
+        </div>
+        <div class="quick-grid">
+          <button class="quick" data-nav="venda">📷<span>Vender / QR</span></button>
+          <button class="quick" data-nav="produtos">🏷️<span>Produtos</span></button>
+          <button class="quick" data-nav="repasses">💸<span>Repasses</span></button>
+          <button class="quick" data-nav="etiqueta">🖨️<span>Etiqueta</span></button>
+          <button class="quick" data-nav="caixa">💰<span>Caixa</span></button>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">
+          <h2>Últimas vendas</h2>
+        </div>
+        <div id="recentSales" class="list"></div>
+      </div>
+    </section>
+
+    <section id="view-produtos" class="view">
+      <div class="section-head">
+        <div><p class="eyebrow">ESTOQUE</p><h1>Produtos</h1></div>
+        <button class="primary" data-nav="produto-form">+ Cadastrar</button>
+      </div>
+      <input id="productSearch" class="input" placeholder="Buscar por peça, SKU, marca ou proprietário">
+      <div id="productList" class="list product-list"></div>
+    </section>
+
+    <section id="view-produto-form" class="view">
+      <div class="section-head">
+        <div><p class="eyebrow">CADASTRO</p><h1 id="productFormTitle">Novo produto</h1></div>
+        <button class="ghost" data-nav="produtos">Cancelar</button>
+      </div>
+      <form id="productForm" class="form panel">
+        <input type="hidden" id="productId">
+        <label>Foto
+          <input id="productPhoto" type="file" accept="image/*" capture="environment">
+        </label>
+        <div id="photoPreview" class="photo-preview">Sem foto</div>
+        <label>Produto / descrição*
+          <input id="productName" required class="input" placeholder="Ex.: Vestido midi floral">
+        </label>
+        <div class="two">
+          <label>Categoria*
+            <select id="productCategory" class="input"></select>
+          </label>
+          <label>Marca
+            <input id="productBrand" class="input" placeholder="Marca">
+          </label>
+        </div>
+        <div class="two">
+          <label>Tamanho / volume
+            <input id="productSize" class="input" placeholder="M, 38, 230g...">
+          </label>
+          <label>Cor
+            <input id="productColor" class="input" placeholder="Cor">
+          </label>
+        </div>
+        <div class="two">
+          <label>Condição
+            <select id="productCondition" class="input">
+              <option>Novo</option><option>Excelente</option><option>Muito bom</option><option>Bom</option><option>Regular</option>
+            </select>
+          </label>
+          <label>Modalidade
+            <select id="productMode" class="input">
+              <option value="consignado">Consignado</option>
+              <option value="proprio">Estoque próprio</option>
+            </select>
+          </label>
+        </div>
+        <div class="two">
+          <label>Proprietário / fornecedor*
+            <input id="productOwner" required class="input" placeholder="Nome">
+          </label>
+          <label>WhatsApp / contato
+            <input id="productOwnerPhone" class="input" inputmode="tel" placeholder="(xx) xxxxx-xxxx">
+          </label>
+        </div>
+        <div class="three">
+          <label>Preço de venda (R$)*
+            <input id="productPrice" required class="input" type="number" min="0.01" step="0.01">
+          </label>
+          <label>Quantidade*
+            <input id="productQty" required class="input" type="number" min="1" step="1" value="1">
+          </label>
+          <label>Custo unitário (R$)
+            <input id="productCost" class="input" type="number" min="0" step="0.01">
+          </label>
+        </div>
+        <button class="primary wide" type="submit">Salvar produto + gerar SKU/QR</button>
+      </form>
+    </section>
+
+    <section id="view-venda" class="view">
+      <div class="section-head">
+        <div><p class="eyebrow">PDV</p><h1>Venda rápida</h1></div>
+      </div>
+      <div class="panel">
+        <h2>Ler QR ou digitar SKU</h2>
+        <div class="scan-row">
+          <input id="saleSku" class="input" placeholder="TDT-ADU-0001" autocomplete="off">
+          <button id="cameraBtn" class="secondary">📷 Câmera</button>
+        </div>
+        <p id="cameraHint" class="hint">Use o leitor de QR dentro do app. No iPhone, a câmera funciona pelo leitor compatível carregado pelo app.</p>
+        <div id="cameraBox" class="camera-box hidden">
+          <video id="cameraVideo" playsinline muted></video><div id="html5Reader" class="hidden"></div>
+          <button id="stopCameraBtn" class="ghost">Fechar câmera</button>
+        </div>
+      </div>
+      <div id="saleProductCard"></div>
+    </section>
+
+    <section id="view-etiqueta" class="view">
+      <div class="section-head">
+        <div><p class="eyebrow">ETIQUETA</p><h1>QR 50 × 30 mm</h1></div>
+      </div>
+      <div class="panel">
+        <label>Produto
+          <select id="labelProduct" class="input"></select>
+        </label>
+        <div id="labelPreviewWrap" class="label-preview-wrap">
+          <div id="labelPreview" class="label-50x30"></div>
+        </div>
+        <div class="button-row">
+          <button id="printLabelBtn" class="primary">Imprimir 50×30</button>
+          <button id="downloadLabelBtn" class="secondary">Baixar PNG</button>
+        </div>
+        <p class="hint">O QR guarda o SKU único do produto. O leitor do próprio app localiza a peça e abre a venda.</p>
+      </div>
+    </section>
+
+    <section id="view-repasses" class="view">
+      <div class="section-head"><div><p class="eyebrow">CONSIGNANTES</p><h1>Repasses</h1></div></div>
+      <div id="repasseList" class="list"></div>
+    </section>
+
+    <section id="view-caixa" class="view">
+      <div class="section-head"><div><p class="eyebrow">FINANCEIRO</p><h1>Caixa</h1></div></div>
+      <form id="cashForm" class="form panel">
+        <div class="two">
+          <label>Tipo
+            <select id="cashType" class="input"><option value="saida">Saída</option><option value="entrada">Entrada</option></select>
+          </label>
+          <label>Valor (R$)
+            <input id="cashValue" required type="number" min="0.01" step="0.01" class="input">
+          </label>
+        </div>
+        <label>Descrição
+          <input id="cashDescription" required class="input" placeholder="Ex.: Embalagens">
+        </label>
+        <button type="submit" class="primary">Registrar movimento</button>
+      </form>
+      <div id="cashList" class="list"></div>
+    </section>
+
+    <section id="view-config" class="view">
+      <div class="section-head"><div><p class="eyebrow">SISTEMA</p><h1>Configurações</h1></div></div>
+      <div class="panel">
+        <h2>Comissões por peça consignada</h2>
+        <div class="commission-table">
+          <div><span>Até R$ 50</span><strong>20%</strong></div>
+          <div><span>R$ 51–100</span><strong>25%</strong></div>
+          <div><span>R$ 101–150</span><strong>30%</strong></div>
+          <div><span>Acima de R$ 150</span><strong>35%</strong></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>Backup</h2>
+        <p class="hint">Nesta primeira versão os dados ficam no próprio aparelho. Faça backup regularmente.</p>
+        <div class="button-row">
+          <button id="exportBtn" class="secondary">Exportar backup</button>
+          <label class="secondary file-button">Restaurar backup<input id="importBackup" type="file" accept="application/json"></label>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>Instalação</h2>
+        <p class="hint">Android: Chrome → menu → Instalar app. iPhone: Safari → Compartilhar → Adicionar à Tela de Início.</p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav">
+    <button data-nav="dashboard" class="active">⌂<span>Início</span></button>
+    <button data-nav="produtos">🏷<span>Produtos</span></button>
+    <button data-nav="venda" class="sell">◎<span>Vender</span></button>
+    <button data-nav="repasses">R$<span>Repasses</span></button>
+    <button data-nav="config">⚙<span>Ajustes</span></button>
+  </nav>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="qr-v1.js"></script>
+  <script src="app-1.js"></script>
+  <script src="app-2.js"></script>
+  <script src="app-3.js"></script>
+  <script src="app-4.js"></script>
+  <script src="app-5.js"></script>
+</body>
+</html>
