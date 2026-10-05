@@ -1,0 +1,9 @@
+{
+  "name":"Tudo & Tal — Estoque e Vendas",
+  "short_name":"Tudo & Tal",
+  "start_url":"./",
+  "display":"standalone",
+  "background_color":"#fff9f5",
+  "theme_color":"#b96a69",
+  "icons":[{"src":"assets/icon.svg","sizes":"any","type":"image/svg+xml"}]
+}
