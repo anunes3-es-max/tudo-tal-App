@@ -95,6 +95,39 @@
     }
     return [...map.values()];
   }
+
+  function mergeProducts(localRows,remoteRows){
+    const remoteBySku=new Map();
+    const mergedById=new Map();
+    const idMap=new Map();
+
+    for(const r of remoteRows){
+      remoteBySku.set(String(r.sku||"").toUpperCase(),r);
+      mergedById.set(r.id,r);
+    }
+
+    for(const l of localRows){
+      const sku=String(l.sku||"").toUpperCase();
+      const sameSku=remoteBySku.get(sku);
+      if(sameSku){
+        idMap.set(l.id,sameSku.id);
+        const newer=stamp("products",l)>stamp("products",sameSku)?l:sameSku;
+        mergedById.set(sameSku.id,{
+          ...newer,
+          id:sameSku.id,
+          sku:sameSku.sku,
+          createdAt:sameSku.createdAt||newer.createdAt
+        });
+        continue;
+      }
+
+      const sameId=mergedById.get(l.id);
+      if(!sameId||stamp("products",l)>stamp("products",sameId))mergedById.set(l.id,l);
+      idMap.set(l.id,l.id);
+    }
+
+    return {rows:[...mergedById.values()],idMap};
+  }
   async function fetchRemote(store){
     const c=client();
     if(!c)throw new Error("Supabase não disponível");
@@ -131,12 +164,33 @@
     syncing=true;
     status("☁️ Sincronizando dados...","info");
     try{
-      for(const storeName of ["products","sales","cash"]){
-        const [localRows,remoteRows]=await Promise.all([dbAll(storeName),fetchRemote(storeName)]);
+      const [localProducts,remoteProducts]=await Promise.all([dbAll("products"),fetchRemote("products")]);
+      const productMerge=mergeProducts(localProducts,remoteProducts);
+      await upsertBatch("products",productMerge.rows);
+
+      window.__TDT_CLOUD_APPLYING__=true;
+      try{
+        await dbClear("products");
+        for(const row of productMerge.rows)await localPut("products",row);
+      }finally{window.__TDT_CLOUD_APPLYING__=false}
+
+      for(const storeName of ["sales","cash"]){
+        let localRows=await dbAll(storeName);
+        const remoteRows=await fetchRemote(storeName);
+
+        if(storeName==="sales"){
+          localRows=localRows.map(s=>{
+            const mapped=productMerge.idMap.get(s.productId);
+            return mapped&&mapped!==s.productId?{...s,productId:mapped}:s;
+          });
+        }
+
         const merged=merge(storeName,localRows,remoteRows);
         await upsertBatch(storeName,merged);
+
         window.__TDT_CLOUD_APPLYING__=true;
         try{
+          await dbClear(storeName);
           for(const row of merged)await localPut(storeName,row);
         }finally{window.__TDT_CLOUD_APPLYING__=false}
       }
@@ -144,7 +198,8 @@
       return true;
     }catch(err){
       console.error("Tudo & Tal cloud sync",err);
-      status("⚠️ Não consegui sincronizar agora. Os dados locais foram preservados.","error");
+      const detail=String(err?.message||err||"erro desconhecido").slice(0,120);
+      status("⚠️ Sincronização não concluída: "+detail,"error");
       return false;
     }finally{syncing=false}
   }
