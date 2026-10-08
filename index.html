@@ -135,12 +135,12 @@
         <div><p class="eyebrow">PDV</p><h1>Venda rápida</h1></div>
       </div>
       <div class="panel">
-        <h2>Ler QR ou digitar SKU</h2>
+        <h2>Ler QR / leitor 2D ou digitar SKU</h2>
         <div class="scan-row">
           <input id="saleSku" class="input" placeholder="TDT-ADU-0001" autocomplete="off">
           <button id="cameraBtn" class="secondary">📷 Câmera</button>
         </div>
-        <p id="cameraHint" class="hint">Use o leitor de QR dentro do app. No iPhone, a câmera funciona pelo leitor compatível carregado pelo app.</p>
+        <p id="cameraHint" class="hint">Você pode usar a câmera do app ou um leitor físico 2D. Com o cursor no campo acima, o leitor envia o SKU do QR; se ele envia Enter ao final, o produto abre automaticamente.</p>
         <div id="cameraBox" class="camera-box hidden">
           <video id="cameraVideo" playsinline muted></video><div id="html5Reader" class="hidden"></div>
           <button id="stopCameraBtn" class="ghost">Fechar câmera</button>
@@ -151,7 +151,7 @@
 
     <section id="view-etiqueta" class="view">
       <div class="section-head">
-        <div><p class="eyebrow">ETIQUETA</p><h1>Etiqueta vertical contínua</h1></div>
+        <div><p class="eyebrow">ETIQUETA</p><h1>Identificação — nome + QR</h1></div>
       </div>
       <div class="panel">
         <label>Produto
@@ -159,18 +159,18 @@
         </label>
         <div class="two label-settings">
           <label>Altura da etiqueta (mm)
-            <input id="labelHeight" class="input" type="number" min="50" max="100" step="1" value="60">
+            <input id="labelHeight" class="input" type="number" min="50" max="100" step="1" value="50">
           </label>
           <label>Espaço entre impressões (mm)
             <input id="labelGap" class="input" type="number" min="0" max="20" step="0.5" value="3">
           </label>
         </div>
-        <p class="hint">Largura fixa: 50 mm. O QR fica grande e centralizado na base, com área branca livre para facilitar a leitura.</p>
+        <p class="hint">A etiqueta mostra somente o nome do produto e um QR grande. O QR contém o SKU usado para estoque e vendas.</p>
         <div id="labelPreviewWrap" class="label-preview-wrap">
           <div id="labelPreview" class="label-vertical"></div>
         </div>
         <div class="button-row">
-          <button id="printLabelBtn" class="primary">Imprimir vertical</button>
+          <button id="printLabelBtn" class="primary">Imprimir identificação</button>
           <button id="downloadLabelBtn" class="secondary">Baixar PNG</button>
         </div>
         <p class="hint">O espaço configurado é acrescentado como faixa branca depois de cada etiqueta, ideal para rolo adesivo contínuo.</p>
@@ -240,7 +240,7 @@
   <script src="qr-v1.js?v=2"></script>
   <script src="app-1.js"></script>
   <script src="app-2.js"></script>
-  <script src="app-3.js?v=3"></script>
+  <script src="app-3.js?v=4"></script>
   <script src="app-4.js"></script>
   <script src="app-5.js"></script>
 </body>
