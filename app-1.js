@@ -11,7 +11,13 @@ function toast(msg){const el=$("#toast");el.textContent=msg;el.classList.add("sh
 function openDb(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,DB_VERSION);req.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains("products"))d.createObjectStore("products",{keyPath:"id"});if(!d.objectStoreNames.contains("sales"))d.createObjectStore("sales",{keyPath:"id"});if(!d.objectStoreNames.contains("cash"))d.createObjectStore("cash",{keyPath:"id"});if(!d.objectStoreNames.contains("settings"))d.createObjectStore("settings",{keyPath:"key"})};req.onsuccess=()=>{db=req.result;resolve(db)};req.onerror=()=>reject(req.error)})}
 function store(n,m="readonly"){return db.transaction(n,m).objectStore(n)}
 function dbAll(n){return new Promise((res,rej)=>{const r=store(n).getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error)})}
-function dbPut(n,o){return new Promise((res,rej)=>{const r=store(n,"readwrite").put(o);r.onsuccess=()=>res(o);r.onerror=()=>rej(r.error)})}
+function localPut(n,o){return new Promise((res,rej)=>{const r=store(n,"readwrite").put(o);r.onsuccess=()=>res(o);r.onerror=()=>rej(r.error)})}
+async function dbPut(n,o){
+  if(!window.__TDT_CLOUD_APPLYING__&&(n==="products"||n==="sales"))o.updatedAt=nowISO();
+  await localPut(n,o);
+  if(!window.__TDT_CLOUD_APPLYING__&&window.tudoTalCloud?.upsert)await window.tudoTalCloud.upsert(n,o);
+  return o;
+}
 function dbClear(n){return new Promise((res,rej)=>{const r=store(n,"readwrite").clear();r.onsuccess=()=>res();r.onerror=()=>rej(r.error)})}
 async function loadState(){state.products=await dbAll("products");state.sales=await dbAll("sales");state.cash=await dbAll("cash")}
 async function seed(){if(state.products.length)return;const p={id:uid("prd"),sku:"TDT-CUI-0001",name:"Máscara capilar",category:"Cuidado Pessoal",brand:"Fino",size:"230g",color:"",condition:"Novo",owner:"Tudo e Tal",ownerPhone:"",price:150,qty:3,cost:0,mode:"proprio",photo:"",stockType:"Múltiplas unidades",createdAt:nowISO(),updatedAt:nowISO()};await dbPut("products",p);state.products=[p]}
