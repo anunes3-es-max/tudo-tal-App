@@ -17,20 +17,8 @@
     <div class="auth-card">
       <img class="auth-logo" src="assets/icon.svg" alt="Tudo & Tal">
       <p class="eyebrow">ACESSO SEGURO</p>
-      <h1>Primeiro administrador</h1>
-      <p id="authIntro" class="auth-copy">Crie sua conta de administrador da Tudo & Tal. Sua senha é enviada diretamente ao Supabase e não fica salva no GitHub.</p>
-
-      <form id="firstAdminForm" class="auth-form">
-        <label>E-mail
-          <input id="authEmail" class="input" type="email" autocomplete="email" required placeholder="seuemail@exemplo.com">
-        </label>
-        <label>Senha
-          <input id="authPassword" class="input" type="password" autocomplete="new-password" minlength="8" required placeholder="Mínimo de 8 caracteres">
-        </label>
-        <button id="createAdminAccountBtn" class="primary wide" type="submit">Criar minha conta</button>
-      </form>
-
-      <div class="auth-divider"><span>ou</span></div>
+      <h1>Entrar na Tudo & Tal</h1>
+      <p id="authIntro" class="auth-copy">Use sua conta de administrador. O cadastro inicial já foi encerrado por segurança.</p>
 
       <form id="adminLoginForm" class="auth-form">
         <label>E-mail
@@ -39,11 +27,24 @@
         <label>Senha
           <input id="loginPassword" class="input" type="password" autocomplete="current-password" required>
         </label>
-        <button class="secondary wide" type="submit">Já confirmei — entrar</button>
+        <button class="primary wide" type="submit">Entrar</button>
       </form>
 
+      <button id="forgotPasswordBtn" class="ghost wide" type="button">Esqueci minha senha</button>
       <button id="checkAdminAccessBtn" class="ghost wide" type="button">Verificar acesso de administrador</button>
-      <p id="authStatus" class="auth-status">Depois de criar a conta, confirme o e-mail recebido e volte a esta página.</p>
+
+      <form id="recoveryForm" class="auth-form hidden">
+        <p class="auth-copy">Crie uma nova senha para sua conta.</p>
+        <label>Nova senha
+          <input id="newPassword" class="input" type="password" autocomplete="new-password" minlength="8" required placeholder="Mínimo de 8 caracteres">
+        </label>
+        <label>Confirmar nova senha
+          <input id="confirmNewPassword" class="input" type="password" autocomplete="new-password" minlength="8" required>
+        </label>
+        <button class="primary wide" type="submit">Salvar nova senha</button>
+      </form>
+
+      <p id="authStatus" class="auth-status">Entre com seu e-mail e senha. Se precisar, use “Esqueci minha senha”.</p>
     </div>
   </section>
 
@@ -272,7 +273,7 @@
   <div id="toast" class="toast"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="auth-setup.js?v=1"></script>
+  <script src="auth-setup.js?v=2"></script>
   <script src="qr-v1.js?v=2"></script>
   <script src="app-1.js"></script>
   <script src="app-2.js"></script>
