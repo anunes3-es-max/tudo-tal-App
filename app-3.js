@@ -1,11 +1,11 @@
 function parseScannedValue(raw){try{const u=new URL(raw),s=u.searchParams.get("sku");if(s)return s.toUpperCase()}catch(_){}return String(raw||"").trim().toUpperCase()}
-function renderSaleLookup(){const sku=$("#saleSku").value.trim();if(sku)lookupSaleSku();else $("#saleProductCard").innerHTML=`<div class="empty">Leia o QR ou digite o SKU.</div>`}
+function renderSaleLookup(){const sku=$("#saleSku").value.trim();if(sku)lookupSaleSku();else $("#saleProductCard").innerHTML=`<div class="empty">Leia o QR com a câmera/leitor 2D ou digite o SKU.</div>`;setTimeout(()=>$("#saleSku")?.focus(),120)}
 function lookupSaleSku(){const sku=parseScannedValue($("#saleSku").value);$("#saleSku").value=sku;const p=state.products.find(x=>String(x.sku).toUpperCase()===sku);state.currentSaleProduct=p||null;if(!p){$("#saleProductCard").innerHTML=sku?`<div class="panel"><strong>SKU não encontrado.</strong><div class="meta">${esc(sku)}</div></div>`:"";return}const rate=p.mode==="consignado"?commissionRate(p.price):0;$("#saleProductCard").innerHTML=`<div class="sale-card"><h2>${esc(p.name)}</h2><div class="meta">${esc(p.sku)} • ${esc(p.owner)} • ${esc(p.size||"Sem tamanho")}</div><div class="sale-grid"><div><span>Preço</span><strong>${money(p.price)}</strong></div><div><span>Estoque</span><strong>${p.qty}</strong></div><div><span>Modalidade</span><strong>${p.mode==="consignado"?"Consignado":"Próprio"}</strong></div><div><span>Comissão</span><strong>${p.mode==="consignado"?`${Math.round(rate*100)}%`:"—"}</strong></div></div><div class="two"><label>Quantidade<input id="saleQty" class="input" type="number" min="1" max="${p.qty}" value="1"></label><label>Preço unitário<input id="salePrice" class="input" type="number" min="0.01" step="0.01" value="${Number(p.price).toFixed(2)}"></label></div><div class="two"><label>Pagamento<select id="salePayment" class="input"><option>Pix</option><option>Dinheiro</option><option>Cartão débito</option><option>Cartão crédito</option><option>Transferência</option><option>Outro</option></select></label><label>Canal<select id="saleChannel" class="input"><option>Loja física</option><option>Instagram</option><option>WhatsApp</option><option>Indicação</option><option>Outro</option></select></label></div><button class="primary wide" onclick="confirmSale()">Confirmar venda</button></div>`}
 window.confirmSale=async function(){const p=state.currentSaleProduct;if(!p)return;const qty=Number($("#saleQty").value),unit=Number($("#salePrice").value);if(qty<1||qty>p.qty){toast("Quantidade sem estoque disponível.");return}if(unit<=0){toast("Preço inválido.");return}const total=qty*unit,rate=p.mode==="consignado"?commissionRate(unit):0,commission=p.mode==="consignado"?total*rate:0,repasse=p.mode==="consignado"?total-commission:0,costTotal=p.mode==="proprio"?qty*Number(p.cost||0):0,result=p.mode==="proprio"?total-costTotal:commission,sale={id:uid("ven"),date:nowISO(),sku:p.sku,productId:p.id,productName:p.name,qty,unitPrice:unit,total,commissionRate:rate,commission,repasse,mode:p.mode,owner:p.owner,ownerPhone:p.ownerPhone||"",payment:$("#salePayment").value,channel:$("#saleChannel").value,receivedStatus:"Recebido",repasseStatus:p.mode==="consignado"?"Pendente":"Não aplicável",costTotal,result};p.qty-=qty;p.updatedAt=nowISO();await dbPut("products",p);await dbPut("sales",sale);await loadState();state.currentSaleProduct=null;$("#saleSku").value="";$("#saleProductCard").innerHTML="";toast(`Venda registrada: ${money(total)}`);nav("dashboard")};
 
 function clampLabelNumber(value,min,max,fallback){const n=Number(value);return Number.isFinite(n)?Math.min(max,Math.max(min,n)):fallback}
 function getLabelSettings(){
-  const height=clampLabelNumber($("#labelHeight")?.value,50,100,60);
+  const height=clampLabelNumber($("#labelHeight")?.value,45,100,50);
   const gap=clampLabelNumber($("#labelGap")?.value,0,20,3);
   return {height,gap,total:height+gap};
 }
@@ -27,7 +27,7 @@ function setupLabelSettings(){
   });
 }
 
-function qrGroupSvg(payload,x,y,module=7){
+function qrGroupSvg(payload,x,y,module=9){
   const m=TudoTalQR.makeMatrix(payload),total=(21+8)*module;
   let s=`<rect x="${x}" y="${y}" width="${total}" height="${total}" fill="#fff"/><g fill="#000" shape-rendering="crispEdges">`;
   for(let yy=0;yy<m.length;yy++)for(let xx=0;xx<m.length;xx++)if(m[yy][xx]){
@@ -36,22 +36,29 @@ function qrGroupSvg(payload,x,y,module=7){
   return s+"</g>";
 }
 
-function labelSvg(p,heightMm=60,gapMm=3){
+function labelNameLines(name){
+  const words=String(name||"Produto").trim().split(/\s+/);
+  const lines=[""];
+  for(const word of words){
+    const i=lines.length-1,trial=(lines[i]+" "+word).trim();
+    if(trial.length<=23 || !lines[i]) lines[i]=trial;
+    else if(lines.length<2) lines.push(word);
+    else { lines[1]=(lines[1]+" "+word).trim().slice(0,26); break; }
+  }
+  return lines.slice(0,2);
+}
+
+function labelSvg(p,heightMm=50,gapMm=3){
   if(!p)return"";
   const pxPerMm=8,widthPx=400,contentPx=Math.round(heightMm*pxPerMm),gapPx=Math.round(gapMm*pxPerMm),totalPx=contentPx+gapPx;
-  const module=7,qrPx=(21+8)*module,qrX=Math.round((widthPx-qrPx)/2),qrY=Math.max(210,contentPx-qrPx-24);
-  const safeName=esc(p.name).slice(0,31),safeSize=esc(p.size||"-"),safeSku=esc(p.sku);
-  const price=money(p.price);
+  const module=9,qrPx=(21+8)*module,qrX=Math.round((widthPx-qrPx)/2),qrY=Math.max(108,contentPx-qrPx-20);
+  const lines=labelNameLines(p.name).map(esc);
+  const nameSvg=lines.length===1
+    ? `<text x="200" y="64" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" font-weight="700">${lines[0]}</text>`
+    : `<text x="200" y="48" text-anchor="middle" font-family="Arial,sans-serif" font-size="25" font-weight="700">${lines[0]}</text><text x="200" y="80" text-anchor="middle" font-family="Arial,sans-serif" font-size="25" font-weight="700">${lines[1]}</text>`;
   return`<svg xmlns="http://www.w3.org/2000/svg" width="50mm" height="${heightMm+gapMm}mm" viewBox="0 0 ${widthPx} ${totalPx}" shape-rendering="crispEdges">
     <rect width="${widthPx}" height="${totalPx}" fill="#fff"/>
-    <g fill="#111">
-      <text x="200" y="38" text-anchor="middle" font-family="Georgia,serif" font-size="30" font-weight="700">Tudo &amp; Tal</text>
-      <text x="200" y="58" text-anchor="middle" font-family="Arial,sans-serif" font-size="11" letter-spacing="3">BRECHÓ</text>
-      <text x="200" y="100" text-anchor="middle" font-family="Arial,sans-serif" font-size="24" font-weight="700">${safeName}</text>
-      <text x="200" y="132" text-anchor="middle" font-family="Arial,sans-serif" font-size="18">Tam.: ${safeSize}</text>
-      <text x="200" y="176" text-anchor="middle" font-family="Arial,sans-serif" font-size="34" font-weight="700">${price}</text>
-      <text x="200" y="205" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="700">${safeSku}</text>
-    </g>
+    <g fill="#111">${nameSvg}</g>
     ${qrGroupSvg(p.sku,qrX,qrY,module)}
   </svg>`;
 }
@@ -81,7 +88,7 @@ function printLabel(){
   window.print();
 }
 
-function drawQrCanvas(ctx,payload,x,y,module=7){
+function drawQrCanvas(ctx,payload,x,y,module=9){
   const m=TudoTalQR.makeMatrix(payload),total=(21+8)*module;
   ctx.fillStyle="#fff";ctx.fillRect(x,y,total,total);ctx.fillStyle="#000";
   for(let yy=0;yy<m.length;yy++)for(let xx=0;xx<m.length;xx++)if(m[yy][xx]){
@@ -89,23 +96,31 @@ function drawQrCanvas(ctx,payload,x,y,module=7){
   }
 }
 
+function fitCanvasLabelText(ctx,text,maxWidth,startSize=28,minSize=19){
+  let size=startSize;
+  while(size>minSize){ctx.font=`700 ${size}px Arial`;if(ctx.measureText(text).width<=maxWidth)break;size--}
+  return size;
+}
+
 function downloadLabel(){
   const p=state.products.find(x=>x.id===$("#labelProduct").value)||state.products[0];if(!p)return;
   const s=getLabelSettings(),pxPerMm=8,widthPx=400,contentPx=Math.round(s.height*pxPerMm),gapPx=Math.round(s.gap*pxPerMm),totalPx=contentPx+gapPx;
   const c=document.createElement("canvas");c.width=widthPx;c.height=totalPx;
   const ctx=c.getContext("2d");ctx.imageSmoothingEnabled=false;ctx.fillStyle="#fff";ctx.fillRect(0,0,widthPx,totalPx);
+  const lines=labelNameLines(p.name);
   ctx.fillStyle="#111";ctx.textAlign="center";
-  ctx.font="700 30px Georgia";ctx.fillText("Tudo & Tal",200,38);
-  ctx.font="700 11px Arial";ctx.fillText("B R E C H Ó",200,58);
-  ctx.font="700 24px Arial";ctx.fillText(String(p.name||"").slice(0,31),200,100);
-  ctx.font="18px Arial";ctx.fillText("Tam.: "+(p.size||"-"),200,132);
-  ctx.font="700 34px Arial";ctx.fillText(money(p.price),200,176);
-  ctx.font="700 15px Arial";ctx.fillText(p.sku,200,205);
-  const module=7,qrPx=(21+8)*module,qrX=Math.round((widthPx-qrPx)/2),qrY=Math.max(210,contentPx-qrPx-24);
+  if(lines.length===1){
+    const size=fitCanvasLabelText(ctx,lines[0],350,28,19);ctx.font=`700 ${size}px Arial`;ctx.fillText(lines[0],200,64);
+  }else{
+    const size1=fitCanvasLabelText(ctx,lines[0],350,25,18),size2=fitCanvasLabelText(ctx,lines[1],350,25,18);
+    ctx.font=`700 ${size1}px Arial`;ctx.fillText(lines[0],200,48);
+    ctx.font=`700 ${size2}px Arial`;ctx.fillText(lines[1],200,80);
+  }
+  const module=9,qrPx=(21+8)*module,qrX=Math.round((widthPx-qrPx)/2),qrY=Math.max(108,contentPx-qrPx-20);
   drawQrCanvas(ctx,p.sku,qrX,qrY,module);
   c.toBlob(b=>{
     const a=document.createElement("a");a.href=URL.createObjectURL(b);
-    a.download=`Etiqueta_${p.sku}_50x${s.height}mm_gap${s.gap}mm_PT260.png`;
+    a.download=`Etiqueta_ID_${p.sku}_50x${s.height}mm_gap${s.gap}mm.png`;
     a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500)
   },"image/png",1);
 }
