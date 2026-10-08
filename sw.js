@@ -1,5 +1,5 @@
 const CACHE='tudo-tal-v8';
-const APP=['./','./index.html','./styles.css?v=6','./qr-v1.js?v=2','./app-1.js?v=8','./cloud-sync.js?v=1','./app-2.js','./app-3.js?v=4','./app-4.js?v=8','./auth-setup.js?v=2','./app-5.js?v=8','./manifest.webmanifest','./assets/logo.svg','./assets/icon.svg'];
+const APP=['./','./index.html','./styles.css?v=6','./qr-v1.js?v=2','./app-1.js?v=8','./cloud-sync.js?v=1','./app-2.js','./app-3.js?v=4','./app-4.js?v=8','./auth-setup.js?v=3','./app-5.js?v=8','./manifest.webmanifest','./assets/logo.svg','./assets/icon.svg'];
 
 self.addEventListener('install',e=>e.waitUntil(
   caches.open(CACHE).then(c=>c.addAll(APP)).then(()=>self.skipWaiting())
