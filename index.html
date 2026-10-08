@@ -248,8 +248,14 @@
         </div>
       </div>
       <div class="panel">
+        <h2>Nuvem e sincronização</h2>
+        <p id="cloudStatus" class="auth-status">☁️ Preparando sincronização...</p>
+        <p class="hint">Produtos, estoque, vendas, caixa e repasses ficam sincronizados com o Supabase. O aparelho também mantém uma cópia local para continuar protegido em caso de falha de conexão.</p>
+        <button id="syncNowBtn" class="secondary">Sincronizar agora</button>
+      </div>
+      <div class="panel">
         <h2>Backup</h2>
-        <p class="hint">Nesta primeira versão os dados ficam no próprio aparelho. Faça backup regularmente.</p>
+        <p class="hint">Os dados principais agora ficam na nuvem e também neste aparelho. Continue fazendo backups periódicos como camada extra de segurança.</p>
         <div class="button-row">
           <button id="exportBtn" class="secondary">Exportar backup</button>
           <label class="secondary file-button">Restaurar backup<input id="importBackup" type="file" accept="application/json"></label>
@@ -275,10 +281,11 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="auth-setup.js?v=2"></script>
   <script src="qr-v1.js?v=2"></script>
-  <script src="app-1.js"></script>
+  <script src="app-1.js?v=8"></script>
+  <script src="cloud-sync.js?v=1"></script>
   <script src="app-2.js"></script>
   <script src="app-3.js?v=4"></script>
-  <script src="app-4.js"></script>
-  <script src="app-5.js?v=6"></script>
+  <script src="app-4.js?v=8"></script>
+  <script src="app-5.js?v=8"></script>
 </body>
 </html>
