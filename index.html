@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#b96a69">
+  <meta name="theme-color" content="#c92569">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Tudo & Tal">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/icon.svg">
-  <link rel="stylesheet" href="styles.css?v=3">
+  <link rel="stylesheet" href="styles.css?v=5">
   <title>Tudo & Tal</title>
 </head>
 <body>
@@ -29,8 +29,8 @@
       <div class="hero">
         <div>
           <p class="eyebrow">VISÃO GERAL</p>
-          <h1>Seu brechó no celular</h1>
-          <p>Cadastre, etiquete, venda, acompanhe estoque, comissão e repasses.</p>
+          <h1>Sua loja, num só lugar</h1>
+          <p>Estoque em dia, vendas na mão e tudo sob controle.</p>
         </div>
         <button class="primary" data-nav="produto-form">+ Novo produto</button>
       </div>
@@ -40,11 +40,11 @@
           <h2>Ações rápidas</h2>
         </div>
         <div class="quick-grid">
-          <button class="quick" data-nav="venda">📷<span>Vender / QR</span></button>
-          <button class="quick" data-nav="produtos">🏷️<span>Produtos</span></button>
-          <button class="quick" data-nav="repasses">💸<span>Repasses</span></button>
-          <button class="quick" data-nav="etiqueta">🖨️<span>Etiqueta</span></button>
-          <button class="quick" data-nav="caixa">💰<span>Caixa</span></button>
+          <button class="quick" data-nav="venda"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5M7 12h10M9 8v8m6-8v8"/></svg><span>Vender / QR</span></button>
+          <button class="quick" data-nav="produtos"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13 13 20a2 2 0 0 1-3 0L3 13V3h10l7 7a2 2 0 0 1 0 3Z"/><circle cx="7.5" cy="7.5" r="1"/></svg><span>Produtos</span></button>
+          <button class="quick" data-nav="repasses"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="12" cy="12" r="3"/><path d="M6 9h.01M18 15h.01"/></svg><span>Repasses</span></button>
+          <button class="quick" data-nav="etiqueta"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8V3h10v5M7 17H3V8h18v9h-4"/><path d="M7 14h10v7H7Z"/><path d="M17 11h.01"/></svg><span>Etiqueta</span></button>
+          <button class="quick" data-nav="caixa"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="12" cy="12" r="3"/><path d="M6 9h.01M18 15h.01"/></svg><span>Caixa</span></button>
         </div>
       </div>
       <div class="panel">
@@ -227,12 +227,12 @@
     </section>
   </main>
 
-  <nav class="bottom-nav">
-    <button data-nav="dashboard" class="active">⌂<span>Início</span></button>
-    <button data-nav="produtos">🏷<span>Produtos</span></button>
-    <button data-nav="venda" class="sell">◎<span>Vender</span></button>
-    <button data-nav="repasses">R$<span>Repasses</span></button>
-    <button data-nav="config">⚙<span>Ajustes</span></button>
+  <nav class="bottom-nav" aria-label="Navegação principal">
+    <button data-nav="dashboard" class="active"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/></svg><span>Início</span></button>
+    <button data-nav="produtos"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13 13 20a2 2 0 0 1-3 0L3 13V3h10l7 7a2 2 0 0 1 0 3Z"/><circle cx="7.5" cy="7.5" r="1"/></svg><span>Produtos</span></button>
+    <button data-nav="venda" class="sell"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5M7 12h10M9 8v8m6-8v8"/></svg><span>Vender</span></button>
+    <button data-nav="repasses"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="12" cy="12" r="3"/><path d="M6 9h.01M18 15h.01"/></svg><span>Repasses</span></button>
+    <button data-nav="config"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 3-1 3-3 1 1 3-2 2 2 2-1 3 3 1 1 3h6l1-3 3-1-1-3 2-2-2-2 1-3-3-1-1-3Z"/><circle cx="12" cy="12" r="3"/></svg><span>Ajustes</span></button>
   </nav>
 
   <div id="toast" class="toast"></div>
