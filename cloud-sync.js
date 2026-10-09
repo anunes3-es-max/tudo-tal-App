@@ -41,11 +41,11 @@
   function saleToCloud(o){
     return {
       id:o.id,sale_date:o.date||new Date().toISOString(),product_id:o.productId||null,
-      sku:o.sku,product_name:o.productName,qty:Number(o.qty||0),unit_price:Number(o.unitPrice||0),
+      sku:o.sku,product_name:o.productName,product_category:o.productCategory||null,product_brand:o.productBrand||null,qty:Number(o.qty||0),unit_price:Number(o.unitPrice||0),
       total:Number(o.total||0),commission_rate:Number(o.commissionRate||0),
       commission:Number(o.commission||0),repasse:Number(o.repasse||0),mode:o.mode,
       partner_id:null,owner_name:o.owner||"Tudo e Tal",owner_phone:o.ownerPhone||null,
-      payment:o.payment||null,channel:o.channel||null,received_status:o.receivedStatus||"Recebido",
+      payment:o.payment||null,channel:o.channel||null,customer_type:o.customerType||"nao_informado",purchase_profile:o.purchaseProfile||"nao_informado",received_status:o.receivedStatus||"Recebido",
       repasse_status:o.repasseStatus||"Não aplicável",repasse_paid_at:o.repassePaidAt||null,
       cost_total:Number(o.costTotal||0),result:Number(o.result||0),
       created_at:o.date||new Date().toISOString(),
@@ -55,10 +55,11 @@
   function saleFromCloud(r){
     return {
       id:r.id,date:r.sale_date,sku:r.sku,productId:r.product_id||"",productName:r.product_name,
-      qty:Number(r.qty||0),unitPrice:Number(r.unit_price||0),total:Number(r.total||0),
+      productCategory:r.product_category||"",productBrand:r.product_brand||"",qty:Number(r.qty||0),unitPrice:Number(r.unit_price||0),total:Number(r.total||0),
       commissionRate:Number(r.commission_rate||0),commission:Number(r.commission||0),
       repasse:Number(r.repasse||0),mode:r.mode,owner:r.owner_name||"Tudo e Tal",
       ownerPhone:r.owner_phone||"",payment:r.payment||"",channel:r.channel||"",
+      customerType:r.customer_type||"nao_informado",purchaseProfile:r.purchase_profile||"nao_informado",
       receivedStatus:r.received_status||"Recebido",repasseStatus:r.repasse_status||"Não aplicável",
       repassePaidAt:r.repasse_paid_at||null,costTotal:Number(r.cost_total||0),
       result:Number(r.result||0),updatedAt:r.updated_at
@@ -224,7 +225,7 @@
       return false;
     }finally{syncing=false}
   }
-  async function registerSaleAtomic({saleId,productId,qty,unitPrice,payment,channel}){
+  async function registerSaleAtomic({saleId,productId,qty,unitPrice,payment,channel,customerType,purchaseProfile}){
     const c=client();
     if(!c)throw new Error("Nuvem indisponível nesta sessão.");
     if(navigator.onLine===false)throw new Error("A venda segura precisa de internet para confirmar o estoque.");
@@ -235,7 +236,9 @@
       p_qty:Number(qty),
       p_unit_price:Number(unitPrice),
       p_payment:payment||null,
-      p_channel:channel||null
+      p_channel:channel||null,
+      p_customer_type:customerType||"nao_informado",
+      p_purchase_profile:purchaseProfile||"nao_informado"
     });
     if(error)throw error;
     if(!data?.sale||!data?.product)throw new Error("Resposta inválida ao registrar a venda.");
@@ -262,6 +265,7 @@
       renderLabelOptions();
       renderCash();
       if(typeof renderRepasses==="function")renderRepasses();
+      if(typeof renderAnalytics==="function"&&state.view==="analytics")renderAnalytics();
     }
     return ok;
   }
