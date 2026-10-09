@@ -79,7 +79,9 @@ window.confirmSale=async function(){
   const p=state.currentSaleProduct;if(!p)return;
   const qty=Number($("#saleQty").value),unit=Number($("#salePrice").value),payment=$("#salePayment").value,installments=Number($("#saleInstallments")?.value||1),firstDueDate=$("#saleFirstDueDate")?.value||null;
   if(qty<1||qty>p.qty){toast("Quantidade sem estoque disponível.");return}
-  if(unit<=0){toast("Preço inválido.");return}\n  if(payment==="Crédito parcelado"&&installments<2){toast("Informe pelo menos 2 parcelas.");return}\n  if(payment==="Crediário VIP"&&!firstDueDate){toast("Informe o vencimento da primeira parcela do Crediário VIP.");return}
+  if(unit<=0){toast("Preço inválido.");return}
+  if(payment==="Crédito parcelado"&&installments<2){toast("Informe pelo menos 2 parcelas.");return}
+  if(payment==="Crediário VIP"&&!firstDueDate){toast("Informe o vencimento da primeira parcela do Crediário VIP.");return}
   if(!window.tudoTalCloud?.registerSaleAtomic){toast("Atualize o app antes de registrar a venda.");return}
   if(navigator.onLine===false){toast("Venda segura requer internet para confirmar o estoque.");return}
 
@@ -91,7 +93,9 @@ window.confirmSale=async function(){
       productId:p.id,
       qty,
       unitPrice:unit,
-      payment:payment,\n      installments:installments,\n      firstDueDate:firstDueDate,
+      payment:payment,
+      installments:installments,
+      firstDueDate:firstDueDate,
       channel:$("#saleChannel").value,
       customerType:$("#saleCustomerType").value,
       purchaseProfile:$("#salePurchaseProfile").value
