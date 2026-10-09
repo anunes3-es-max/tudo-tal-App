@@ -196,3 +196,23 @@ main{padding:18px 14px}.topbar{padding:12px 14px}.brand strong{font-size:20px}.b
   .analytics-kpis{grid-template-columns:1fr 1fr;gap:8px}
   .analytics-kpi{padding:14px}
 }
+
+
+/* Pagamentos e Crediário VIP */
+.payment-extra{margin:4px 0 8px;padding:14px;border:1px solid #eadff3;background:#faf7ff;border-radius:16px}
+.analytics-wide{grid-column:1/-1}
+.receivable-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:8px 0 14px}
+.receivable-summary-card{background:#f7f8fc;border:1px solid var(--line);border-radius:16px;padding:14px}
+.receivable-summary-card span,.receivable-summary-card small{display:block;color:var(--muted);font-size:12px}
+.receivable-summary-card strong{display:block;font-size:24px;margin:5px 0;color:var(--ink)}
+.receivable-row{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:13px 0;border-bottom:1px solid var(--line)}
+.receivable-row:last-child{border-bottom:0}
+.receivable-row.overdue{background:#fff7f7;margin:0 -10px;padding:13px 10px;border-radius:12px}
+.receivable-row.overdue .meta{color:var(--red)}
+.receivable-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.receivable-actions>strong{color:var(--rose);white-space:nowrap}
+@media(max-width:600px){
+  .receivable-summary{grid-template-columns:1fr}
+  .receivable-row{align-items:flex-start;flex-direction:column}
+  .receivable-actions{width:100%;justify-content:space-between}
+}
