@@ -1,7 +1,49 @@
 function parseScannedValue(raw){try{const u=new URL(raw),s=u.searchParams.get("sku");if(s)return s.toUpperCase()}catch(_){}return String(raw||"").trim().toUpperCase()}
 function renderSaleLookup(){const sku=$("#saleSku").value.trim();if(sku)lookupSaleSku();else $("#saleProductCard").innerHTML=`<div class="empty">Leia o QR com a câmera/leitor 2D ou digite o SKU.</div>`;setTimeout(()=>$("#saleSku")?.focus(),120)}
-function lookupSaleSku(){const sku=parseScannedValue($("#saleSku").value);$("#saleSku").value=sku;const p=state.products.find(x=>String(x.sku).toUpperCase()===sku);state.currentSaleProduct=p||null;if(!p){$("#saleProductCard").innerHTML=sku?`<div class="panel"><strong>SKU não encontrado.</strong><div class="meta">${esc(sku)}</div></div>`:"";return}const rate=p.mode==="consignado"?commissionRate(p.price):0;$("#saleProductCard").innerHTML=`<div class="sale-card"><h2>${esc(p.name)}</h2><div class="meta">${esc(p.sku)} • ${esc(p.owner)} • ${esc(p.size||"Sem tamanho")}</div><div class="sale-grid"><div><span>Preço</span><strong>${money(p.price)}</strong></div><div><span>Estoque</span><strong>${p.qty}</strong></div><div><span>Modalidade</span><strong>${p.mode==="consignado"?"Consignado":"Próprio"}</strong></div><div><span>Comissão</span><strong>${p.mode==="consignado"?`${Math.round(rate*100)}%`:"—"}</strong></div></div><div class="two"><label>Quantidade<input id="saleQty" class="input" type="number" min="1" max="${p.qty}" value="1"></label><label>Preço unitário<input id="salePrice" class="input" type="number" min="0.01" step="0.01" value="${Number(p.price).toFixed(2)}"></label></div><div class="two"><label>Pagamento<select id="salePayment" class="input"><option>Pix</option><option>Dinheiro</option><option>Cartão débito</option><option>Cartão crédito</option><option>Transferência</option><option>Outro</option></select></label><label>Canal<select id="saleChannel" class="input"><option>Loja física</option><option>Instagram</option><option>WhatsApp</option><option>Indicação</option><option>Outro</option></select></label></div><button class="primary wide" onclick="confirmSale()">Confirmar venda</button></div>`}
-window.confirmSale=async function(){const p=state.currentSaleProduct;if(!p)return;const qty=Number($("#saleQty").value),unit=Number($("#salePrice").value);if(qty<1||qty>p.qty){toast("Quantidade sem estoque disponível.");return}if(unit<=0){toast("Preço inválido.");return}const total=qty*unit,rate=p.mode==="consignado"?commissionRate(unit):0,commission=p.mode==="consignado"?total*rate:0,repasse=p.mode==="consignado"?total-commission:0,costTotal=p.mode==="proprio"?qty*Number(p.cost||0):0,result=p.mode==="proprio"?total-costTotal:commission,sale={id:uid("ven"),date:nowISO(),sku:p.sku,productId:p.id,productName:p.name,qty,unitPrice:unit,total,commissionRate:rate,commission,repasse,mode:p.mode,owner:p.owner,ownerPhone:p.ownerPhone||"",payment:$("#salePayment").value,channel:$("#saleChannel").value,receivedStatus:"Recebido",repasseStatus:p.mode==="consignado"?"Pendente":"Não aplicável",costTotal,result};p.qty-=qty;p.updatedAt=nowISO();await dbPut("products",p);await dbPut("sales",sale);await loadState();state.currentSaleProduct=null;$("#saleSku").value="";$("#saleProductCard").innerHTML="";toast(`Venda registrada: ${money(total)}`);nav("dashboard")};
+function lookupSaleSku(){const sku=parseScannedValue($("#saleSku").value);$("#saleSku").value=sku;const p=state.products.find(x=>String(x.sku).toUpperCase()===sku);state.currentSaleProduct=p||null;if(!p){$("#saleProductCard").innerHTML=sku?`<div class="panel"><strong>SKU não encontrado.</strong><div class="meta">${esc(sku)}</div></div>`:"";return}const rate=p.mode==="consignado"?commissionRate(p.price):0;$("#saleProductCard").innerHTML=`<div class="sale-card"><h2>${esc(p.name)}</h2><div class="meta">${esc(p.sku)} • ${esc(p.owner)} • ${esc(p.size||"Sem tamanho")}</div><div class="sale-grid"><div><span>Preço</span><strong>${money(p.price)}</strong></div><div><span>Estoque</span><strong>${p.qty}</strong></div><div><span>Modalidade</span><strong>${p.mode==="consignado"?"Consignado":"Próprio"}</strong></div><div><span>Comissão</span><strong>${p.mode==="consignado"?`${Math.round(rate*100)}%`:"—"}</strong></div></div><div class="two"><label>Quantidade<input id="saleQty" class="input" type="number" min="1" max="${p.qty}" value="1"></label><label>Preço unitário<input id="salePrice" class="input" type="number" min="0.01" step="0.01" value="${Number(p.price).toFixed(2)}"></label></div><div class="two"><label>Pagamento<select id="salePayment" class="input"><option>Pix</option><option>Dinheiro</option><option>Cartão débito</option><option>Cartão crédito</option><option>Transferência</option><option>Outro</option></select></label><label>Canal<select id="saleChannel" class="input"><option>Loja física</option><option>Instagram</option><option>WhatsApp</option><option>Indicação</option><option>Outro</option></select></label></div><p class="hint">🔒 A venda é confirmada na nuvem antes de baixar o estoque, evitando venda dupla entre aparelhos.</p><button class="primary wide" onclick="confirmSale()">Confirmar venda</button></div>`}
+window.confirmSale=async function(){
+  const p=state.currentSaleProduct;if(!p)return;
+  const qty=Number($("#saleQty").value),unit=Number($("#salePrice").value);
+  if(qty<1||qty>p.qty){toast("Quantidade sem estoque disponível.");return}
+  if(unit<=0){toast("Preço inválido.");return}
+  if(!window.tudoTalCloud?.registerSaleAtomic){toast("Atualize o app antes de registrar a venda.");return}
+  if(navigator.onLine===false){toast("Venda segura requer internet para confirmar o estoque.");return}
+
+  const btn=$("#saleProductCard .primary");
+  if(btn){btn.disabled=true;btn.textContent="Confirmando estoque..."}
+  try{
+    const result=await window.tudoTalCloud.registerSaleAtomic({
+      saleId:uid("ven"),
+      productId:p.id,
+      qty,
+      unitPrice:unit,
+      payment:$("#salePayment").value,
+      channel:$("#saleChannel").value
+    });
+    await loadState();
+    state.currentSaleProduct=null;
+    $("#saleSku").value="";
+    $("#saleProductCard").innerHTML="";
+    toast(`Venda registrada com estoque protegido: ${money(result.sale.total)}`);
+    nav("dashboard");
+  }catch(err){
+    const msg=String(err?.message||err||"Não consegui registrar a venda.");
+    if(/estoque insuficiente/i.test(msg)){
+      toast(msg);
+      await window.tudoTalCloud.syncAndRefresh();
+      const fresh=state.products.find(x=>x.id===p.id);
+      if(fresh){state.currentSaleProduct=fresh;$("#saleSku").value=fresh.sku;lookupSaleSku()}
+    }else if(/internet/i.test(msg)){
+      toast("Sem internet. A venda não foi registrada para evitar conflito de estoque.");
+    }else{
+      console.error("Falha na venda atômica",err);
+      toast("Não consegui registrar a venda: "+msg.slice(0,90));
+    }
+  }finally{
+    const currentBtn=$("#saleProductCard .primary");
+    if(currentBtn){currentBtn.disabled=false;currentBtn.textContent="Confirmar venda"}
+  }
+};
 
 function clampLabelNumber(value,min,max,fallback){const n=Number(value);return Number.isFinite(n)?Math.min(max,Math.max(min,n)):fallback}
 function getLabelSettings(){
