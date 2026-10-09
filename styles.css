@@ -216,3 +216,22 @@ main{padding:18px 14px}.topbar{padding:12px 14px}.brand strong{font-size:20px}.b
   .receivable-row{align-items:flex-start;flex-direction:column}
   .receivable-actions{width:100%;justify-content:space-between}
 }
+
+
+/* InfinitePay */
+.infinity-fee-preview{display:grid;gap:4px;margin-top:10px;padding:13px 14px;border:1px solid #cfe9df;background:#eefbf7;border-radius:14px}
+.infinity-fee-preview strong{color:#087565;font-size:14px}
+.infinity-fee-preview span{color:var(--muted);font-size:12px}
+.infinity-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:14px}
+.infinity-summary-card{background:#f7f8fc;border:1px solid var(--line);border-radius:14px;padding:12px;min-width:0}
+.infinity-summary-card span{display:block;color:var(--muted);font-size:11px}
+.infinity-summary-card strong{display:block;margin-top:5px;font-size:17px;overflow-wrap:anywhere}
+.infinity-rate-table div{align-items:flex-start;gap:16px}
+.infinity-rate-table span{min-width:0}
+.infinity-rate-table strong{text-align:right;font-size:12px;line-height:1.45}
+.infinity-link{display:inline-flex;text-decoration:none;align-items:center;justify-content:center;margin-top:10px}
+@media(max-width:600px){
+  .infinity-summary{grid-template-columns:1fr}
+  .infinity-rate-table div{flex-direction:column;gap:4px}
+  .infinity-rate-table strong{text-align:left}
+}
