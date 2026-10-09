@@ -238,7 +238,9 @@
       p_payment:payment||null,
       p_channel:channel||null,
       p_customer_type:customerType||"nao_informado",
-      p_purchase_profile:purchaseProfile||"nao_informado",\n      p_installments:Number(installments||1),\n      p_first_due_date:firstDueDate||null
+      p_purchase_profile:purchaseProfile||"nao_informado",
+      p_installments:Number(installments||1),
+      p_first_due_date:firstDueDate||null
     });
     if(error)throw error;
     if(!data?.sale||!data?.product)throw new Error("Resposta inválida ao registrar a venda.");
