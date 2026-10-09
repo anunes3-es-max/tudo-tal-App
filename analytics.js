@@ -167,13 +167,15 @@
     const categoryRows=aggregate(rows,s=>productMeta(s).category);
     const channelRows=aggregate(rows,s=>s.channel||"Não informado",s=>Number(s.total||0));
     const customerRows=aggregate(rows,s=>labelCustomerType(s.customerType),s=>Number(s.total||0));
-    const profileRows=aggregate(rows,s=>labelPurchaseProfile(s.purchaseProfile),s=>Number(s.total||0));\n    const paymentRows=aggregate(rows,s=>s.payment||"Não informado",s=>Number(s.total||0));
+    const profileRows=aggregate(rows,s=>labelPurchaseProfile(s.purchaseProfile),s=>Number(s.total||0));
+    const paymentRows=aggregate(rows,s=>s.payment||"Não informado",s=>Number(s.total||0));
 
     renderBars("#topProducts",productRows,{maxItems:6});
     renderBars("#topCategories",categoryRows,{maxItems:6});
     renderBars("#topChannels",channelRows,{moneyValue:true,maxItems:6});
     renderBars("#customerTypes",customerRows,{moneyValue:true,maxItems:5});
-    renderBars("#purchaseProfiles",profileRows,{moneyValue:true,maxItems:5});\n    renderBars("#paymentMethods",paymentRows,{moneyValue:true,maxItems:8});
+    renderBars("#purchaseProfiles",profileRows,{moneyValue:true,maxItems:5});
+    renderBars("#paymentMethods",paymentRows,{moneyValue:true,maxItems:8});
 
     const totalRevenue=sum(rows,s=>s.total);
     const recurringRevenue=sum(rows,s=>s.customerType==="recorrente"?s.total:0);
