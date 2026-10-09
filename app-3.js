@@ -1,11 +1,85 @@
 function parseScannedValue(raw){try{const u=new URL(raw),s=u.searchParams.get("sku");if(s)return s.toUpperCase()}catch(_){}return String(raw||"").trim().toUpperCase()}
 function renderSaleLookup(){const sku=$("#saleSku").value.trim();if(sku)lookupSaleSku();else $("#saleProductCard").innerHTML=`<div class="empty">Leia o QR com a câmera/leitor 2D ou digite o SKU.</div>`;setTimeout(()=>$("#saleSku")?.focus(),120)}
-function lookupSaleSku(){const sku=parseScannedValue($("#saleSku").value);$("#saleSku").value=sku;const p=state.products.find(x=>String(x.sku).toUpperCase()===sku);state.currentSaleProduct=p||null;if(!p){$("#saleProductCard").innerHTML=sku?`<div class="panel"><strong>SKU não encontrado.</strong><div class="meta">${esc(sku)}</div></div>`:"";return}const rate=p.mode==="consignado"?commissionRate(p.price):0;$("#saleProductCard").innerHTML=`<div class="sale-card"><h2>${esc(p.name)}</h2><div class="meta">${esc(p.sku)} • ${esc(p.owner)} • ${esc(p.size||"Sem tamanho")}</div><div class="sale-grid"><div><span>Preço</span><strong>${money(p.price)}</strong></div><div><span>Estoque</span><strong>${p.qty}</strong></div><div><span>Modalidade</span><strong>${p.mode==="consignado"?"Consignado":"Próprio"}</strong></div><div><span>Comissão</span><strong>${p.mode==="consignado"?`${Math.round(rate*100)}%`:"—"}</strong></div></div><div class="two"><label>Quantidade<input id="saleQty" class="input" type="number" min="1" max="${p.qty}" value="1"></label><label>Preço unitário<input id="salePrice" class="input" type="number" min="0.01" step="0.01" value="${Number(p.price).toFixed(2)}"></label></div><div class="two"><label>Pagamento<select id="salePayment" class="input"><option>Pix</option><option>Dinheiro</option><option>Cartão débito</option><option>Cartão crédito</option><option>Transferência</option><option>Outro</option></select></label><label>Canal<select id="saleChannel" class="input"><option>Loja física</option><option>Instagram</option><option>WhatsApp</option><option>Indicação</option><option>Outro</option></select></label></div><div class="two"><label>Tipo de cliente<select id="saleCustomerType" class="input"><option value="nao_informado">Não informado</option><option value="novo">Cliente novo</option><option value="recorrente">Cliente recorrente</option></select></label><label>Perfil da compra<select id="salePurchaseProfile" class="input"><option value="nao_informado">Não informado</option><option value="uso_proprio">Uso próprio</option><option value="presente">Presente</option><option value="revenda">Revenda</option><option value="outro">Outro</option></select></label></div><p class="hint">Esses dois campos alimentam os gráficos de perfil de cliente e ajudam a planejar compras futuras.</p><p class="hint">🔒 A venda é confirmada na nuvem antes de baixar o estoque, evitando venda dupla entre aparelhos.</p><button class="primary wide" onclick="confirmSale()">Confirmar venda</button></div>`}
+function updatePaymentFields(){
+  const payment=$("#salePayment")?.value||"Pix";
+  const box=$("#paymentExtraFields");
+  if(!box)return;
+  if(payment==="Crédito parcelado"){
+    box.classList.remove("hidden");
+    box.innerHTML=`<div class="two"><label>Número de parcelas<input id="saleInstallments" class="input" type="number" min="2" max="24" value="2"></label><label>Resumo<input class="input" value="Parcelamento no cartão" disabled></label></div>`;
+  }else if(payment==="Crediário VIP"){
+    box.classList.remove("hidden");
+    box.innerHTML=`<div class="two"><label>Número de parcelas<input id="saleInstallments" class="input" type="number" min="1" max="24" value="1"></label><label>Vencimento da 1ª parcela<input id="saleFirstDueDate" class="input" type="date" required></label></div><p class="hint">As próximas parcelas serão mensais. Cada parcela ficará no controle do Crediário VIP até ser marcada como paga.</p>`;
+  }else{
+    box.classList.add("hidden");
+    box.innerHTML="";
+  }
+}
+
+function lookupSaleSku(){
+  const sku=parseScannedValue($("#saleSku").value);
+  $("#saleSku").value=sku;
+  const p=state.products.find(x=>String(x.sku).toUpperCase()===sku);
+  state.currentSaleProduct=p||null;
+  if(!p){
+    $("#saleProductCard").innerHTML=sku?`<div class="panel"><strong>SKU não encontrado.</strong><div class="meta">${esc(sku)}</div></div>`:"";
+    return;
+  }
+  const rate=p.mode==="consignado"?commissionRate(p.price):0;
+  $("#saleProductCard").innerHTML=`<div class="sale-card">
+    <h2>${esc(p.name)}</h2>
+    <div class="meta">${esc(p.sku)} • ${esc(p.owner)} • ${esc(p.size||"Sem tamanho")}</div>
+    <div class="sale-grid">
+      <div><span>Preço</span><strong>${money(p.price)}</strong></div>
+      <div><span>Estoque</span><strong>${p.qty}</strong></div>
+      <div><span>Modalidade</span><strong>${p.mode==="consignado"?"Consignado":"Próprio"}</strong></div>
+      <div><span>Comissão</span><strong>${p.mode==="consignado"?Math.round(rate*100)+"%":"—"}</strong></div>
+    </div>
+    <div class="two">
+      <label>Quantidade<input id="saleQty" class="input" type="number" min="1" max="${p.qty}" value="1"></label>
+      <label>Preço unitário<input id="salePrice" class="input" type="number" min="0.01" step="0.01" value="${Number(p.price).toFixed(2)}"></label>
+    </div>
+    <div class="two">
+      <label>Pagamento
+        <select id="salePayment" class="input" onchange="updatePaymentFields()">
+          <option>Pix</option>
+          <option>Dinheiro</option>
+          <option>Débito</option>
+          <option>Crédito à vista</option>
+          <option>Crédito parcelado</option>
+          <option>Crediário VIP</option>
+        </select>
+      </label>
+      <label>Canal
+        <select id="saleChannel" class="input">
+          <option>Loja física</option><option>Instagram</option><option>WhatsApp</option><option>Indicação</option><option>Outro</option>
+        </select>
+      </label>
+    </div>
+    <div id="paymentExtraFields" class="payment-extra hidden"></div>
+    <div class="two">
+      <label>Tipo de cliente
+        <select id="saleCustomerType" class="input">
+          <option value="nao_informado">Não informado</option><option value="novo">Cliente novo</option><option value="recorrente">Cliente recorrente</option>
+        </select>
+      </label>
+      <label>Perfil da compra
+        <select id="salePurchaseProfile" class="input">
+          <option value="nao_informado">Não informado</option><option value="uso_proprio">Uso próprio</option><option value="presente">Presente</option><option value="revenda">Revenda</option><option value="outro">Outro</option>
+        </select>
+      </label>
+    </div>
+    <p class="hint">Forma de pagamento, tipo de cliente e perfil da compra alimentam os relatórios financeiros e de mercado.</p>
+    <p class="hint">🔒 A venda é confirmada na nuvem antes de baixar o estoque, evitando venda dupla entre aparelhos.</p>
+    <button class="primary wide" onclick="confirmSale()">Confirmar venda</button>
+  </div>`;
+  updatePaymentFields();
+}
 window.confirmSale=async function(){
   const p=state.currentSaleProduct;if(!p)return;
-  const qty=Number($("#saleQty").value),unit=Number($("#salePrice").value);
+  const qty=Number($("#saleQty").value),unit=Number($("#salePrice").value),payment=$("#salePayment").value,installments=Number($("#saleInstallments")?.value||1),firstDueDate=$("#saleFirstDueDate")?.value||null;
   if(qty<1||qty>p.qty){toast("Quantidade sem estoque disponível.");return}
-  if(unit<=0){toast("Preço inválido.");return}
+  if(unit<=0){toast("Preço inválido.");return}\n  if(payment==="Crédito parcelado"&&installments<2){toast("Informe pelo menos 2 parcelas.");return}\n  if(payment==="Crediário VIP"&&!firstDueDate){toast("Informe o vencimento da primeira parcela do Crediário VIP.");return}
   if(!window.tudoTalCloud?.registerSaleAtomic){toast("Atualize o app antes de registrar a venda.");return}
   if(navigator.onLine===false){toast("Venda segura requer internet para confirmar o estoque.");return}
 
@@ -17,7 +91,7 @@ window.confirmSale=async function(){
       productId:p.id,
       qty,
       unitPrice:unit,
-      payment:$("#salePayment").value,
+      payment:payment,\n      installments:installments,\n      firstDueDate:firstDueDate,
       channel:$("#saleChannel").value,
       customerType:$("#saleCustomerType").value,
       purchaseProfile:$("#salePurchaseProfile").value
