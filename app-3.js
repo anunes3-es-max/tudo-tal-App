@@ -1,12 +1,112 @@
 function parseScannedValue(raw){try{const u=new URL(raw),s=u.searchParams.get("sku");if(s)return s.toUpperCase()}catch(_){}return String(raw||"").trim().toUpperCase()}
 function renderSaleLookup(){const sku=$("#saleSku").value.trim();if(sku)lookupSaleSku();else $("#saleProductCard").innerHTML=`<div class="empty">Leia o QR com a câmera/leitor 2D ou digite o SKU.</div>`;setTimeout(()=>$("#saleSku")?.focus(),120)}
+function infinityPayDefaults(){
+  return {
+    receivingPlan:localStorage.getItem("tdtInfinityReceivingPlan")||"one_day",
+    rateTier:localStorage.getItem("tdtInfinityRateTier")||"up_to_20",
+    brandGroup:localStorage.getItem("tdtInfinityBrandGroup")||"visa_master"
+  };
+}
+
+function rememberInfinityPayChoice(){
+  const plan=$("#saleReceivingPlan")?.value;
+  const tier=$("#saleRateTier")?.value;
+  const brand=$("#saleCardBrand")?.value;
+  if(plan)localStorage.setItem("tdtInfinityReceivingPlan",plan);
+  if(tier)localStorage.setItem("tdtInfinityRateTier",tier);
+  if(brand)localStorage.setItem("tdtInfinityBrandGroup",brand==="Elo/Amex"?"elo_amex":"visa_master");
+}
+
+function infinityCardFields(payment){
+  const d=infinityPayDefaults();
+  const brandValue=d.brandGroup==="elo_amex"?"Elo/Amex":"Visa/Mastercard";
+  const installments=payment==="Crédito parcelado"
+    ? `<label>Parcelas no cartão<input id="saleInstallments" class="input" type="number" min="2" max="12" value="2" oninput="updateInfinityRatePreview()"></label>`
+    : "";
+  return `<div class="two">
+    ${installments}
+    <label>Bandeira
+      <select id="saleCardBrand" class="input" onchange="updateInfinityRatePreview()">
+        <option${brandValue==="Visa/Mastercard"?" selected":""}>Visa/Mastercard</option>
+        <option${brandValue==="Elo/Amex"?" selected":""}>Elo/Amex</option>
+      </select>
+    </label>
+  </div>
+  <div class="two">
+    <label>Recebimento InfinitePay
+      <select id="saleReceivingPlan" class="input" onchange="updateInfinityRatePreview()">
+        <option value="one_day"${d.receivingPlan==="one_day"?" selected":""}>Em 1 dia útil</option>
+        <option value="instant"${d.receivingPlan==="instant"?" selected":""}>Na hora</option>
+      </select>
+    </label>
+    <label>Faixa de faturamento
+      <select id="saleRateTier" class="input" onchange="updateInfinityRatePreview()">
+        <option value="up_to_20"${d.rateTier==="up_to_20"?" selected":""}>Até R$ 20 mil/mês</option>
+        <option value="above_20"${d.rateTier==="above_20"?" selected":""}>Acima de R$ 20 mil/mês</option>
+        <option value="above_40"${d.rateTier==="above_40"?" selected":""}>Acima de R$ 40 mil/mês</option>
+        <option value="above_80"${d.rateTier==="above_80"?" selected":""}>Acima de R$ 80 mil/mês</option>
+      </select>
+    </label>
+  </div>
+  <div id="infinityFeePreview" class="infinity-fee-preview">Calculando taxa InfinitePay...</div>
+  <p class="hint">Taxas conforme tabela oficial da InfinitePay consultada em 08/10/2026. Confirme sua faixa vigente no app da InfinitePay.</p>`;
+}
+
+async function updateInfinityRatePreview(){
+  const preview=$("#infinityFeePreview");
+  const payment=$("#salePayment")?.value||"Pix";
+  const plan=$("#saleReceivingPlan")?.value||"one_day";
+  const tier=$("#saleRateTier")?.value||"up_to_20";
+  const cardBrand=$("#saleCardBrand")?.value||"Visa/Mastercard";
+  const brandGroup=cardBrand==="Elo/Amex"?"elo_amex":"visa_master";
+  const installments=payment==="Crédito parcelado"?Number($("#saleInstallments")?.value||2):1;
+  const tierSelect=$("#saleRateTier");
+  if(tierSelect)tierSelect.disabled=plan==="instant";
+  rememberInfinityPayChoice();
+
+  if(payment==="Pix"){
+    if(preview)preview.innerHTML="<strong>InfinitePay: Pix grátis</strong><span>Taxa 0% • líquido igual ao valor da venda</span>";
+    return;
+  }
+  if(!["Débito","Crédito à vista","Crédito parcelado"].includes(payment)||!preview)return;
+  if(!window.tudoTalCloud?.getInfinityPayRate){
+    preview.textContent="Atualize o app para calcular a taxa InfinitePay.";
+    return;
+  }
+
+  const qty=Number($("#saleQty")?.value||1);
+  const unit=Number($("#salePrice")?.value||0);
+  const total=qty*unit;
+  preview.textContent="Calculando taxa InfinitePay...";
+  try{
+    const info=await window.tudoTalCloud.getInfinityPayRate({
+      payment,
+      installments,
+      receivingPlan:plan,
+      rateTier:tier,
+      brandGroup
+    });
+    const rate=Number(info?.rate||0);
+    const fee=total*rate;
+    const net=total-fee;
+    preview.innerHTML=`<strong>Taxa estimada: ${(rate*100).toFixed(2).replace(".",",")}% • ${money(fee)}</strong><span>Venda ${money(total)} → líquido após InfinitePay: ${money(net)}</span>`;
+  }catch(err){
+    console.error("Taxa InfinitePay",err);
+    preview.textContent="Não consegui consultar a taxa agora.";
+  }
+}
+
 function updatePaymentFields(){
   const payment=$("#salePayment")?.value||"Pix";
   const box=$("#paymentExtraFields");
   if(!box)return;
-  if(payment==="Crédito parcelado"){
+
+  if(payment==="Crédito parcelado"||payment==="Crédito à vista"||payment==="Débito"){
     box.classList.remove("hidden");
-    box.innerHTML=`<div class="two"><label>Número de parcelas<input id="saleInstallments" class="input" type="number" min="2" max="24" value="2"></label><label>Resumo<input class="input" value="Parcelamento no cartão" disabled></label></div>`;
+    box.innerHTML=infinityCardFields(payment);
+  }else if(payment==="Pix"){
+    box.classList.remove("hidden");
+    box.innerHTML=`<div id="infinityFeePreview" class="infinity-fee-preview"><strong>InfinitePay: Pix grátis</strong><span>Taxa 0% • líquido igual ao valor da venda</span></div><p class="hint">A InfinitePay informa Pix gratuito pela maquininha, QR Code ou aplicativo.</p>`;
   }else if(payment==="Crediário VIP"){
     box.classList.remove("hidden");
     box.innerHTML=`<div class="two"><label>Número de parcelas<input id="saleInstallments" class="input" type="number" min="1" max="24" value="1"></label><label>Vencimento da 1ª parcela<input id="saleFirstDueDate" class="input" type="date" required></label></div><p class="hint">As próximas parcelas serão mensais. Cada parcela ficará no controle do Crediário VIP até ser marcada como paga.</p>`;
@@ -14,6 +114,7 @@ function updatePaymentFields(){
     box.classList.add("hidden");
     box.innerHTML="";
   }
+  setTimeout(updateInfinityRatePreview,0);
 }
 
 function lookupSaleSku(){
@@ -36,8 +137,8 @@ function lookupSaleSku(){
       <div><span>Comissão</span><strong>${p.mode==="consignado"?Math.round(rate*100)+"%":"—"}</strong></div>
     </div>
     <div class="two">
-      <label>Quantidade<input id="saleQty" class="input" type="number" min="1" max="${p.qty}" value="1"></label>
-      <label>Preço unitário<input id="salePrice" class="input" type="number" min="0.01" step="0.01" value="${Number(p.price).toFixed(2)}"></label>
+      <label>Quantidade<input id="saleQty" class="input" type="number" min="1" max="${p.qty}" value="1" oninput="updateInfinityRatePreview()"></label>
+      <label>Preço unitário<input id="salePrice" class="input" type="number" min="0.01" step="0.01" value="${Number(p.price).toFixed(2)}" oninput="updateInfinityRatePreview()"></label>
     </div>
     <div class="two">
       <label>Pagamento
@@ -69,7 +170,7 @@ function lookupSaleSku(){
         </select>
       </label>
     </div>
-    <p class="hint">Forma de pagamento, tipo de cliente e perfil da compra alimentam os relatórios financeiros e de mercado.</p>
+    <p class="hint">Forma de pagamento, taxa InfinitePay, tipo de cliente e perfil da compra alimentam os relatórios financeiros e de mercado.</p>
     <p class="hint">🔒 A venda é confirmada na nuvem antes de baixar o estoque, evitando venda dupla entre aparelhos.</p>
     <button class="primary wide" onclick="confirmSale()">Confirmar venda</button>
   </div>`;
@@ -77,10 +178,10 @@ function lookupSaleSku(){
 }
 window.confirmSale=async function(){
   const p=state.currentSaleProduct;if(!p)return;
-  const qty=Number($("#saleQty").value),unit=Number($("#salePrice").value),payment=$("#salePayment").value,installments=Number($("#saleInstallments")?.value||1),firstDueDate=$("#saleFirstDueDate")?.value||null;
+  const qty=Number($("#saleQty").value),unit=Number($("#salePrice").value),payment=$("#salePayment").value,installments=Number($("#saleInstallments")?.value||1),firstDueDate=$("#saleFirstDueDate")?.value||null,cardBrand=$("#saleCardBrand")?.value||null,receivingPlan=$("#saleReceivingPlan")?.value||"one_day",rateTier=$("#saleRateTier")?.value||"up_to_20";
   if(qty<1||qty>p.qty){toast("Quantidade sem estoque disponível.");return}
   if(unit<=0){toast("Preço inválido.");return}
-  if(payment==="Crédito parcelado"&&installments<2){toast("Informe pelo menos 2 parcelas.");return}
+  if(payment==="Crédito parcelado"&&(installments<2||installments>12)){toast("Na InfinitePay, informe de 2 a 12 parcelas.");return}
   if(payment==="Crediário VIP"&&!firstDueDate){toast("Informe o vencimento da primeira parcela do Crediário VIP.");return}
   if(!window.tudoTalCloud?.registerSaleAtomic){toast("Atualize o app antes de registrar a venda.");return}
   if(navigator.onLine===false){toast("Venda segura requer internet para confirmar o estoque.");return}
@@ -96,6 +197,9 @@ window.confirmSale=async function(){
       payment:payment,
       installments:installments,
       firstDueDate:firstDueDate,
+      cardBrand:cardBrand,
+      receivingPlan:receivingPlan,
+      rateTier:rateTier,
       channel:$("#saleChannel").value,
       customerType:$("#saleCustomerType").value,
       purchaseProfile:$("#salePurchaseProfile").value
@@ -104,7 +208,7 @@ window.confirmSale=async function(){
     state.currentSaleProduct=null;
     $("#saleSku").value="";
     $("#saleProductCard").innerHTML="";
-    toast(`Venda registrada com estoque protegido: ${money(result.sale.total)}`);
+    const fee=Number(result.sale.processingFeeAmount||0);toast(`Venda registrada: ${money(result.sale.total)}${fee>0?` • taxa InfinitePay ${money(fee)}`:""}`);
     nav("dashboard");
   }catch(err){
     const msg=String(err?.message||err||"Não consegui registrar a venda.");
