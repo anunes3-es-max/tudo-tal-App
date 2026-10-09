@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="Tudo & Tal">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/icon.svg">
-  <link rel="stylesheet" href="styles.css?v=8">
+  <link rel="stylesheet" href="styles.css?v=9">
   <title>Tudo & Tal</title>
 </head>
 <body class="auth-locked">
@@ -283,10 +283,12 @@
           <h2>Canais que mais faturam</h2>
           <p class="hint">Loja física, Instagram, WhatsApp, indicação e outros.</p>
           <div id="topChannels"></div>
-        </div>\n        <div class="panel">
+        </div>
+        <div class="panel">
           <h2>Formas de pagamento</h2>
           <p class="hint">Dinheiro, Pix, débito, crédito e Crediário VIP nos últimos 90 dias.</p>
           <div id="paymentMethods"></div>
+          <div id="infinitySummary" class="infinity-summary"></div>
         </div>
         <div class="panel">
           <h2>Clientes novos x recorrentes</h2>
@@ -302,7 +304,8 @@
           <h2>Reposição e baixo giro</h2>
           <p class="hint">Sinais automáticos baseados no estoque atual e nas vendas recentes. São indicações de gestão, não previsão de mercado externo.</p>
           <div id="inventoryAdvice"></div>
-        </div>\n        <div class="panel analytics-wide">
+        </div>
+        <div class="panel analytics-wide">
           <h2>Crediário VIP — parcelas a receber</h2>
           <p class="hint">Acompanhe vencimentos e marque cada parcela quando o pagamento entrar.</p>
           <div id="vipReceivableSummary" class="receivable-summary"></div>
@@ -321,6 +324,20 @@
           <div><span>R$ 101–150</span><strong>30%</strong></div>
           <div><span>Acima de R$ 150</span><strong>35%</strong></div>
         </div>
+      </div>
+      <div class="panel">
+        <h2>InfinitePay — taxas no PDV</h2>
+        <p class="hint">O sistema calcula e grava a taxa usada em cada venda para preservar o histórico mesmo que a InfinitePay altere os preços no futuro. A tabela abaixo foi conferida no site oficial em 08/10/2026.</p>
+        <div class="commission-table infinity-rate-table">
+          <div><span>Plano inicial até R$ 20 mil — Visa/Master</span><strong>Débito 1,37% • Crédito 3,15% • 12x 12,40%</strong></div>
+          <div><span>Acima de R$ 20 mil — Visa/Master</span><strong>0,85% • 2,89% • 12x 10,12%</strong></div>
+          <div><span>Acima de R$ 40 mil — Visa/Master</span><strong>0,79% • 2,79% • 12x 9,56%</strong></div>
+          <div><span>Acima de R$ 80 mil — Visa/Master</span><strong>0,75% • 2,69% • 12x 8,99%</strong></div>
+          <div><span>Pix</span><strong>0%</strong></div>
+          <div><span>Recebimento na hora</span><strong>Débito 2,29% • Crédito 5,49% • 12x 18,29%</strong></div>
+        </div>
+        <p class="hint">No momento da venda você escolhe a bandeira, o prazo de recebimento e sua faixa de faturamento. Para Elo/Amex, o sistema usa a tabela específica publicada pela InfinitePay.</p>
+        <a class="secondary infinity-link" href="https://www.infinitepay.io/taxas" target="_blank" rel="noopener">Conferir tabela oficial da InfinitePay</a>
       </div>
       <div class="panel">
         <h2>Nuvem e sincronização</h2>
@@ -357,11 +374,11 @@
   <script src="auth-setup.js?v=3"></script>
   <script src="qr-v1.js?v=2"></script>
   <script src="app-1.js?v=11"></script>
-  <script src="cloud-sync.js?v=5"></script>
+  <script src="cloud-sync.js?v=6"></script>
   <script src="app-2.js"></script>
-  <script src="app-3.js?v=12"></script>
+  <script src="app-3.js?v=13"></script>
   <script src="app-4.js?v=8"></script>
-  <script src="analytics.js?v=2"></script>
+  <script src="analytics.js?v=3"></script>
   <script src="app-5.js?v=8"></script>
 </body>
 </html>
