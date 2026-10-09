@@ -45,7 +45,7 @@
       total:Number(o.total||0),commission_rate:Number(o.commissionRate||0),
       commission:Number(o.commission||0),repasse:Number(o.repasse||0),mode:o.mode,
       partner_id:null,owner_name:o.owner||"Tudo e Tal",owner_phone:o.ownerPhone||null,
-      payment:o.payment||null,channel:o.channel||null,customer_type:o.customerType||"nao_informado",purchase_profile:o.purchaseProfile||"nao_informado",received_status:o.receivedStatus||"Recebido",
+      payment:o.payment||null,installments:Number(o.installments||1),first_due_date:o.firstDueDate||null,channel:o.channel||null,customer_type:o.customerType||"nao_informado",purchase_profile:o.purchaseProfile||"nao_informado",received_status:o.receivedStatus||"Recebido",
       repasse_status:o.repasseStatus||"Não aplicável",repasse_paid_at:o.repassePaidAt||null,
       cost_total:Number(o.costTotal||0),result:Number(o.result||0),
       created_at:o.date||new Date().toISOString(),
@@ -58,7 +58,7 @@
       productCategory:r.product_category||"",productBrand:r.product_brand||"",qty:Number(r.qty||0),unitPrice:Number(r.unit_price||0),total:Number(r.total||0),
       commissionRate:Number(r.commission_rate||0),commission:Number(r.commission||0),
       repasse:Number(r.repasse||0),mode:r.mode,owner:r.owner_name||"Tudo e Tal",
-      ownerPhone:r.owner_phone||"",payment:r.payment||"",channel:r.channel||"",
+      ownerPhone:r.owner_phone||"",payment:r.payment||"",installments:Number(r.installments||1),firstDueDate:r.first_due_date||null,channel:r.channel||"",
       customerType:r.customer_type||"nao_informado",purchaseProfile:r.purchase_profile||"nao_informado",
       receivedStatus:r.received_status||"Recebido",repasseStatus:r.repasse_status||"Não aplicável",
       repassePaidAt:r.repasse_paid_at||null,costTotal:Number(r.cost_total||0),
@@ -225,7 +225,7 @@
       return false;
     }finally{syncing=false}
   }
-  async function registerSaleAtomic({saleId,productId,qty,unitPrice,payment,channel,customerType,purchaseProfile}){
+  async function registerSaleAtomic({saleId,productId,qty,unitPrice,payment,installments,firstDueDate,channel,customerType,purchaseProfile}){
     const c=client();
     if(!c)throw new Error("Nuvem indisponível nesta sessão.");
     if(navigator.onLine===false)throw new Error("A venda segura precisa de internet para confirmar o estoque.");
@@ -238,7 +238,7 @@
       p_payment:payment||null,
       p_channel:channel||null,
       p_customer_type:customerType||"nao_informado",
-      p_purchase_profile:purchaseProfile||"nao_informado"
+      p_purchase_profile:purchaseProfile||"nao_informado",\n      p_installments:Number(installments||1),\n      p_first_due_date:firstDueDate||null
     });
     if(error)throw error;
     if(!data?.sale||!data?.product)throw new Error("Resposta inválida ao registrar a venda.");
@@ -256,6 +256,26 @@
     return {status:data.status||"registered",product:localProduct,sale:localSale};
   }
 
+  async function fetchReceivables(){
+    const c=client();
+    if(!c)throw new Error("Nuvem indisponível nesta sessão.");
+    const {data,error}=await c.from("receivable_installments")
+      .select("*")
+      .order("due_date",{ascending:true})
+      .order("installment_number",{ascending:true});
+    if(error)throw error;
+    return data||[];
+  }
+
+  async function markReceivablePaid(receivableId){
+    const c=client();
+    if(!c)throw new Error("Nuvem indisponível nesta sessão.");
+    const {data,error}=await c.rpc("mark_receivable_paid",{p_receivable_id:receivableId});
+    if(error)throw error;
+    await syncAll();
+    return data;
+  }
+
   async function syncAndRefresh(){
     const ok=await syncAll();
     if(ok){
@@ -270,5 +290,5 @@
     return ok;
   }
 
-  window.tudoTalCloud={syncAll,syncAndRefresh,upsert,replaceAllFromLocal,registerSaleAtomic,status,get lastStatus(){return lastStatus}};
+  window.tudoTalCloud={syncAll,syncAndRefresh,upsert,replaceAllFromLocal,registerSaleAtomic,fetchReceivables,markReceivablePaid,status,get lastStatus(){return lastStatus}};
 })();
