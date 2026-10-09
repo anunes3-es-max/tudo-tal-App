@@ -224,6 +224,35 @@
       return false;
     }finally{syncing=false}
   }
+  async function registerSaleAtomic({saleId,productId,qty,unitPrice,payment,channel}){
+    const c=client();
+    if(!c)throw new Error("Nuvem indisponível nesta sessão.");
+    if(navigator.onLine===false)throw new Error("A venda segura precisa de internet para confirmar o estoque.");
+
+    const {data,error}=await c.rpc("register_sale_atomic",{
+      p_sale_id:saleId,
+      p_product_id:productId,
+      p_qty:Number(qty),
+      p_unit_price:Number(unitPrice),
+      p_payment:payment||null,
+      p_channel:channel||null
+    });
+    if(error)throw error;
+    if(!data?.sale||!data?.product)throw new Error("Resposta inválida ao registrar a venda.");
+
+    const localProduct=productFromCloud(data.product);
+    const localSale=saleFromCloud(data.sale);
+
+    window.__TDT_CLOUD_APPLYING__=true;
+    try{
+      await localPut("products",localProduct);
+      await localPut("sales",localSale);
+    }finally{window.__TDT_CLOUD_APPLYING__=false}
+
+    status("☁️ Venda protegida e sincronizada • "+new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}),"success");
+    return {status:data.status||"registered",product:localProduct,sale:localSale};
+  }
+
   async function syncAndRefresh(){
     const ok=await syncAll();
     if(ok){
@@ -237,5 +266,5 @@
     return ok;
   }
 
-  window.tudoTalCloud={syncAll,syncAndRefresh,upsert,replaceAllFromLocal,status,get lastStatus(){return lastStatus}};
+  window.tudoTalCloud={syncAll,syncAndRefresh,upsert,replaceAllFromLocal,registerSaleAtomic,status,get lastStatus(){return lastStatus}};
 })();
