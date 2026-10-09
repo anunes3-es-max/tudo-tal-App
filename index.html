@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="Tudo & Tal">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/icon.svg">
-  <link rel="stylesheet" href="styles.css?v=6">
+  <link rel="stylesheet" href="styles.css?v=7">
   <title>Tudo & Tal</title>
 </head>
 <body class="auth-locked">
@@ -79,7 +79,7 @@
           <button class="quick" data-nav="produtos"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13 13 20a2 2 0 0 1-3 0L3 13V3h10l7 7a2 2 0 0 1 0 3Z"/><circle cx="7.5" cy="7.5" r="1"/></svg><span>Produtos</span></button>
           <button class="quick" data-nav="repasses"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="12" cy="12" r="3"/><path d="M6 9h.01M18 15h.01"/></svg><span>Repasses</span></button>
           <button class="quick" data-nav="etiqueta"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8V3h10v5M7 17H3V8h18v9h-4"/><path d="M7 14h10v7H7Z"/><path d="M17 11h.01"/></svg><span>Etiqueta</span></button>
-          <button class="quick" data-nav="caixa"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="12" cy="12" r="3"/><path d="M6 9h.01M18 15h.01"/></svg><span>Caixa</span></button>
+          <button class="quick" data-nav="caixa"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="12" cy="12" r="3"/><path d="M6 9h.01M18 15h.01"/></svg><span>Caixa</span></button><button class="quick" data-nav="analytics"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-7M22 19V3"/><path d="M2 19h22"/></svg><span>Análises</span></button>
         </div>
       </div>
       <div class="panel">
@@ -236,6 +236,72 @@
       <div id="cashList" class="list"></div>
     </section>
 
+    <section id="view-analytics" class="view">
+      <div class="section-head analytics-head">
+        <div>
+          <p class="eyebrow">INTELIGÊNCIA DE VENDAS</p>
+          <h1>Análises & compras</h1>
+          <p class="hint">Entenda o que gira mais, quem compra e onde priorizar reposição. Os indicadores usam os dados internos da Tudo & Tal.</p>
+        </div>
+        <button class="ghost" data-nav="dashboard">Voltar</button>
+      </div>
+
+      <div class="analytics-period" aria-label="Período da análise">
+        <button type="button" data-period="day">Diário</button>
+        <button type="button" data-period="week">Semanal</button>
+        <button type="button" data-period="month" class="active">Mensal</button>
+        <button type="button" data-period="year">Anual</button>
+      </div>
+      <p id="analyticsPeriodNote" class="analytics-period-note">Últimos 12 meses</p>
+
+      <div id="analyticsKpis" class="analytics-kpis"></div>
+
+      <div class="panel analytics-chart-panel">
+        <div class="panel-title">
+          <div>
+            <h2>Faturamento ao longo do tempo</h2>
+            <p class="hint">Passe o mouse ou toque nas barras para ver o valor e as unidades vendidas.</p>
+          </div>
+        </div>
+        <div id="salesTrendChart" class="analytics-chart"></div>
+      </div>
+
+      <div id="marketSummary" class="analytics-insights"></div>
+
+      <div class="analytics-grid">
+        <div class="panel">
+          <h2>Produtos que mais vendem</h2>
+          <p class="hint">Quantidade vendida nos últimos 90 dias.</p>
+          <div id="topProducts"></div>
+        </div>
+        <div class="panel">
+          <h2>Categorias com maior giro</h2>
+          <p class="hint">Ajuda a decidir onde concentrar futuras compras.</p>
+          <div id="topCategories"></div>
+        </div>
+        <div class="panel">
+          <h2>Canais que mais faturam</h2>
+          <p class="hint">Loja física, Instagram, WhatsApp, indicação e outros.</p>
+          <div id="topChannels"></div>
+        </div>
+        <div class="panel">
+          <h2>Clientes novos x recorrentes</h2>
+          <p class="hint">Faturamento dos últimos 90 dias por tipo de cliente.</p>
+          <div id="customerTypes"></div>
+        </div>
+        <div class="panel">
+          <h2>Perfil da compra</h2>
+          <p class="hint">Uso próprio, presente, revenda ou outro.</p>
+          <div id="purchaseProfiles"></div>
+        </div>
+        <div class="panel">
+          <h2>Reposição e baixo giro</h2>
+          <p class="hint">Sinais automáticos baseados no estoque atual e nas vendas recentes. São indicações de gestão, não previsão de mercado externo.</p>
+          <div id="inventoryAdvice"></div>
+        </div>
+      </div>
+    </section>
+
     <section id="view-config" class="view">
       <div class="section-head"><div><p class="eyebrow">SISTEMA</p><h1>Configurações</h1></div></div>
       <div class="panel">
@@ -281,11 +347,12 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="auth-setup.js?v=3"></script>
   <script src="qr-v1.js?v=2"></script>
-  <script src="app-1.js?v=8"></script>
-  <script src="cloud-sync.js?v=3"></script>
+  <script src="app-1.js?v=11"></script>
+  <script src="cloud-sync.js?v=4"></script>
   <script src="app-2.js"></script>
-  <script src="app-3.js?v=10"></script>
+  <script src="app-3.js?v=11"></script>
   <script src="app-4.js?v=8"></script>
+  <script src="analytics.js?v=1"></script>
   <script src="app-5.js?v=8"></script>
 </body>
 </html>
