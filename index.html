@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="Tudo & Tal">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/icon.svg">
-  <link rel="stylesheet" href="styles.css?v=7">
+  <link rel="stylesheet" href="styles.css?v=8">
   <title>Tudo & Tal</title>
 </head>
 <body class="auth-locked">
@@ -283,6 +283,10 @@
           <h2>Canais que mais faturam</h2>
           <p class="hint">Loja física, Instagram, WhatsApp, indicação e outros.</p>
           <div id="topChannels"></div>
+        </div>\n        <div class="panel">
+          <h2>Formas de pagamento</h2>
+          <p class="hint">Dinheiro, Pix, débito, crédito e Crediário VIP nos últimos 90 dias.</p>
+          <div id="paymentMethods"></div>
         </div>
         <div class="panel">
           <h2>Clientes novos x recorrentes</h2>
@@ -298,6 +302,11 @@
           <h2>Reposição e baixo giro</h2>
           <p class="hint">Sinais automáticos baseados no estoque atual e nas vendas recentes. São indicações de gestão, não previsão de mercado externo.</p>
           <div id="inventoryAdvice"></div>
+        </div>\n        <div class="panel analytics-wide">
+          <h2>Crediário VIP — parcelas a receber</h2>
+          <p class="hint">Acompanhe vencimentos e marque cada parcela quando o pagamento entrar.</p>
+          <div id="vipReceivableSummary" class="receivable-summary"></div>
+          <div id="vipReceivables"></div>
         </div>
       </div>
     </section>
@@ -348,11 +357,11 @@
   <script src="auth-setup.js?v=3"></script>
   <script src="qr-v1.js?v=2"></script>
   <script src="app-1.js?v=11"></script>
-  <script src="cloud-sync.js?v=4"></script>
+  <script src="cloud-sync.js?v=5"></script>
   <script src="app-2.js"></script>
-  <script src="app-3.js?v=11"></script>
+  <script src="app-3.js?v=12"></script>
   <script src="app-4.js?v=8"></script>
-  <script src="analytics.js?v=1"></script>
+  <script src="analytics.js?v=2"></script>
   <script src="app-5.js?v=8"></script>
 </body>
 </html>
