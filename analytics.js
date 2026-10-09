@@ -61,6 +61,8 @@
         revenue:sum(sales,s=>s.total),
         qty:sum(sales,s=>s.qty),
         result:sum(sales,s=>s.result),
+        fees:sum(sales,s=>s.processingFeeAmount),
+        net:sum(sales,s=>s.netAmount??s.total),
         transactions:sales.length
       });
     }
@@ -74,7 +76,7 @@
   }
 
   function renderKpis(buckets,mode){
-    const current=buckets[buckets.length-1]||{revenue:0,qty:0,result:0,transactions:0};
+    const current=buckets[buckets.length-1]||{revenue:0,qty:0,result:0,fees:0,net:0,transactions:0};
     const previous=buckets[buckets.length-2]||{revenue:0};
     const v=variation(current.revenue,previous.revenue);
     const ticket=current.transactions?current.revenue/current.transactions:0;
@@ -83,7 +85,9 @@
       ["Faturamento",money(current.revenue),'<span class="analytics-delta '+v.cls+'">'+v.text+' vs. período anterior</span>'],
       ["Unidades vendidas",String(current.qty),'<span class="analytics-sub">'+title+'</span>'],
       ["Ticket médio",money(ticket),'<span class="analytics-sub">'+current.transactions+' venda(s)</span>'],
-      ["Resultado da loja",money(current.result),'<span class="analytics-sub">Comissão/lucro estimado</span>']
+      ["Taxas InfinitePay",money(current.fees),'<span class="analytics-sub">Taxas descontadas das vendas</span>'],
+      ["Líquido após taxas",money(current.net),'<span class="analytics-sub">Faturamento menos taxas de pagamento</span>'],
+      ["Resultado da loja",money(current.result),'<span class="analytics-sub">Já desconta taxas InfinitePay nas vendas novas</span>']
     ];
     $("#analyticsKpis").innerHTML=rows.map(r=>'<div class="analytics-kpi"><span>'+r[0]+'</span><strong>'+r[1]+'</strong>'+r[2]+'</div>').join("");
   }
@@ -176,6 +180,16 @@
     renderBars("#customerTypes",customerRows,{moneyValue:true,maxItems:5});
     renderBars("#purchaseProfiles",profileRows,{moneyValue:true,maxItems:5});
     renderBars("#paymentMethods",paymentRows,{moneyValue:true,maxItems:8});
+    const infinityRows=rows.filter(s=>s.paymentProvider==="InfinitePay"||Number(s.processingFeeAmount||0)>0);
+    const infinityGross=sum(infinityRows,s=>s.total);
+    const infinityFees=sum(infinityRows,s=>s.processingFeeAmount);
+    const infinityNet=sum(infinityRows,s=>s.netAmount??s.total);
+    const inf=$("#infinitySummary");
+    if(inf){
+      inf.innerHTML=infinityRows.length
+        ?'<div class="infinity-summary-card"><span>Processado pela InfinitePay</span><strong>'+money(infinityGross)+'</strong></div><div class="infinity-summary-card"><span>Taxas estimadas</span><strong>'+money(infinityFees)+'</strong></div><div class="infinity-summary-card"><span>Líquido após taxas</span><strong>'+money(infinityNet)+'</strong></div>'
+        :'<div class="empty">As próximas vendas pela InfinitePay mostrarão taxas e valor líquido aqui.</div>';
+    }
 
     const totalRevenue=sum(rows,s=>s.total);
     const recurringRevenue=sum(rows,s=>s.customerType==="recorrente"?s.total:0);
