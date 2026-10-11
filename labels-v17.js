@@ -30,10 +30,10 @@ function label17Setup(){
       renderLabel();
     });
   });
-  const ios=document.querySelector("#printIosDLabelBtn");
-  if(ios&&!ios.dataset.v18){
-    ios.dataset.v18="1";
-    ios.addEventListener("click",printIosDLabel);
+  const ios=document.querySelector("#printIosXdLabelBtn");
+  if(ios&&!ios.dataset.v19){
+    ios.dataset.v19="1";
+    ios.addEventListener("click",printIosXdLabel);
   }
 }
 
@@ -365,8 +365,8 @@ function label17CanvasBlob(canvas){
   });
 }
 
-async function printIosDLabel(){
-  const btn=document.querySelector("#printIosDLabelBtn");
+async function printIosXdLabel(){
+  const btn=document.querySelector("#printIosXdLabelBtn");
   const old=btn?.innerHTML;
   if(btn){btn.disabled=true;btn.textContent="Preparando etiqueta..."}
   try{
@@ -379,9 +379,9 @@ async function printIosDLabel(){
       await navigator.share({
         files:[file],
         title:"Etiqueta Tudo & Tal",
-        text:"Etiqueta 5 × 5 cm pronta para imprimir na PT260 pelo DLabel."
+        text:"Etiqueta 5 × 5 cm pronta para imprimir na PT260 pelo XDLabel Studio."
       });
-      toast("Etiqueta pronta. No compartilhamento, escolha o DLabel.");
+      toast("Etiqueta pronta. No compartilhamento, escolha o XDLabel Studio.");
       return;
     }
 
@@ -390,11 +390,11 @@ async function printIosDLabel(){
     a.download=filename;
     a.click();
     setTimeout(function(){URL.revokeObjectURL(a.href)},1800);
-    toast("Etiqueta salva em PNG. Abra o DLabel e importe a imagem.");
+    toast("Etiqueta salva em PNG. Abra o XDLabel Studio e importe a imagem.");
   }catch(err){
     if(err?.name==="AbortError")return;
     console.error(err);
-    toast("Não consegui abrir o compartilhamento. Use “Baixar PNG” e importe no DLabel.");
+    toast("Não consegui abrir o compartilhamento. Use “Baixar PNG” e importe no XDLabel Studio.");
   }finally{
     if(btn){btn.disabled=false;btn.innerHTML=old}
   }
