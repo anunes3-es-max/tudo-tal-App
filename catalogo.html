@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#b94767">
+  <meta name="theme-color" content="#11131a">
   <title>Catálogo Tudo & Tal</title>
   <link rel="icon" href="assets/icon.svg">
-  <link rel="stylesheet" href="catalogo.css?v=1">
+  <link rel="stylesheet" href="catalogo.css?v=2">
 </head>
 <body>
   <header class="catalog-top">
@@ -14,7 +14,11 @@
       <img src="assets/icon.svg" alt="">
       <div><strong>Tudo & Tal</strong><span>Moda • Beleza • Segunda vida</span></div>
     </a>
-    <button id="cartButton" class="cart-button" type="button" aria-label="Abrir carrinho">
+    <button id="cartButton" class="cart-button" type="button" aria-label="Abrir sacola">
+      <svg class="bag-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M5.5 8h13l1 12h-15l1-12Z"/>
+        <path d="M9 9V6.5a3 3 0 0 1 6 0V9"/>
+      </svg>
       <span>Minha sacola</span><b id="cartCount">0</b>
     </button>
   </header>
