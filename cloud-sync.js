@@ -41,7 +41,7 @@
   function saleToCloud(o){
     return {
       id:o.id,sale_date:o.date||new Date().toISOString(),product_id:o.productId||null,
-      sku:o.sku,product_name:o.productName,product_category:o.productCategory||null,product_brand:o.productBrand||null,qty:Number(o.qty||0),unit_price:Number(o.unitPrice||0),list_unit_price:Number(o.listUnitPrice??o.unitPrice||0),
+      sku:o.sku,product_name:o.productName,product_category:o.productCategory||null,product_brand:o.productBrand||null,qty:Number(o.qty||0),unit_price:Number(o.unitPrice||0),list_unit_price:Number((o.listUnitPrice??o.unitPrice)||0),
       total:Number(o.total||0),discount_percent:Number(o.discountPercent||0),discount_amount:Number(o.discountAmount||0),promotion_discount_percent:Number(o.promotionDiscountPercent||0),checkout_discount_percent:Number(o.checkoutDiscountPercent||0),cart_id:o.cartId||null,commission_rate:Number(o.commissionRate||0),
       commission:Number(o.commission||0),repasse:Number(o.repasse||0),mode:o.mode,
       partner_id:null,owner_name:o.owner||"Tudo e Tal",owner_phone:o.ownerPhone||null,
@@ -55,7 +55,7 @@
   function saleFromCloud(r){
     return {
       id:r.id,date:r.sale_date,sku:r.sku,productId:r.product_id||"",productName:r.product_name,
-      productCategory:r.product_category||"",productBrand:r.product_brand||"",qty:Number(r.qty||0),unitPrice:Number(r.unit_price||0),listUnitPrice:Number(r.list_unit_price??r.unit_price||0),total:Number(r.total||0),discountPercent:Number(r.discount_percent||0),discountAmount:Number(r.discount_amount||0),promotionDiscountPercent:Number(r.promotion_discount_percent||0),checkoutDiscountPercent:Number(r.checkout_discount_percent||0),cartId:r.cart_id||"",
+      productCategory:r.product_category||"",productBrand:r.product_brand||"",qty:Number(r.qty||0),unitPrice:Number(r.unit_price||0),listUnitPrice:Number((r.list_unit_price??r.unit_price)||0),total:Number(r.total||0),discountPercent:Number(r.discount_percent||0),discountAmount:Number(r.discount_amount||0),promotionDiscountPercent:Number(r.promotion_discount_percent||0),checkoutDiscountPercent:Number(r.checkout_discount_percent||0),cartId:r.cart_id||"",
       commissionRate:Number(r.commission_rate||0),commission:Number(r.commission||0),
       repasse:Number(r.repasse||0),mode:r.mode,owner:r.owner_name||"Tudo e Tal",
       ownerPhone:r.owner_phone||"",payment:r.payment||"",paymentProvider:r.payment_provider||"",cardBrand:r.card_brand||"",receivingPlan:r.receiving_plan||"",rateTier:r.rate_tier||"",processingFeeRate:Number(r.processing_fee_rate||0),processingFeeAmount:Number(r.processing_fee_amount||0),netAmount:Number(r.net_amount??r.total??0),installments:Number(r.installments||1),firstDueDate:r.first_due_date||null,channel:r.channel||"",
