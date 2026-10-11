@@ -258,3 +258,23 @@ main{max-width:1220px;margin:auto;padding:24px 18px 70px}
 .product-price.promo small{color:#8d909c;font-size:10px;font-weight:750;text-decoration:line-through}
 .product-price.promo strong{color:#f15a8a;font-size:20px;line-height:1}
 .product-price.promo span{width:max-content;margin-top:3px;padding:3px 6px;border-radius:999px;color:#fff;background:#7857e8;font-size:7.5px;font-weight:950;letter-spacing:.04em}
+
+/* Produtos esgotados e cadastro de interesse */
+.stock-pill.sold-out{color:#74542e;background:#f6eddf}
+.product-card.sold-out .product-photo img{opacity:.82}
+.waitlist-btn{width:100%;min-height:44px;margin-top:12px;padding:9px 7px;border:1px solid #d8cdef;border-radius:12px;background:#f4effc;color:#583b94;font-size:11px;font-weight:850;line-height:1.3}
+.waitlist-btn:hover{background:#eae0fb;border-color:#bda6e7}
+.waitlist-btn:focus-visible{outline:3px solid var(--violet);outline-offset:3px}
+.interest-card h2{padding-right:30px}
+.interest-product{display:flex;align-items:center;gap:13px;margin-top:20px;padding:12px;border:1px solid #343844;border-radius:15px;background:#1d2029}
+.interest-product img{width:62px;height:62px;flex:none;object-fit:cover;border-radius:10px;background:#fff}
+.interest-product strong{display:block;margin-top:7px;font:600 18px/1.2 var(--serif)}
+.interest-product .stock-pill{margin-top:0}
+.interest-intro{margin:14px 0 0;color:#b8bac4;font-size:12px;line-height:1.6}
+.interest-error{margin:0;padding:10px 12px;border-radius:10px;background:#38222e;color:#ffb8d0;font-size:12px;line-height:1.5}
+.interest-success{text-align:center;padding-top:22px}
+.interest-success h3{margin:10px 0;font:600 26px var(--serif)}
+.interest-success p{color:#b8bac4;font-size:13px;line-height:1.6}
+.interest-success .secondary{margin-top:8px;background:#20232d;color:#fff;border-color:#343844}
+@media(max-width:390px){.waitlist-btn{font-size:10px}.interest-card{padding:23px 19px}}
+

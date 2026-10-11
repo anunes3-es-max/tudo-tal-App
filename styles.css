@@ -1234,3 +1234,30 @@ body::before{opacity:.12;background-image:radial-gradient(rgba(120,87,232,.22) .
 .promo-admin-price{display:grid!important;justify-items:end;gap:2px}
 .promo-admin-price small{color:#9698a3;font-size:10px;font-family:var(--sans);text-decoration:line-through}
 .promo-admin-price strong{color:#e94b7c;font-size:18px}
+
+/* Lista de espera — interesse por produto e contatos privados */
+.inline-count{display:inline-flex;align-items:center;justify-content:center;min-width:21px;height:21px;margin-left:5px;padding:0 5px;border-radius:999px;color:#fff;background:var(--rose);font-size:10px}
+.waitlist-list{display:grid;gap:16px}
+.waitlist-note{margin:12px 0;padding:15px 18px}
+.waitlist-note p{margin:0;color:var(--muted);font-size:12px;line-height:1.6}
+#waitlistSearch{margin:4px 0 12px}
+.waitlist-product{margin:0}
+.waitlist-product-head{display:flex;align-items:center;gap:14px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.waitlist-product-head img{width:68px;height:68px;flex:none;border-radius:15px;object-fit:cover;background:#f4f2f8}
+.waitlist-product-head h2{margin:4px 0;font:600 23px/1.2 var(--serif)}
+.waitlist-product-head .eyebrow{font-size:9px}
+.waitlist-stock,.waitlist-status,.waitlist-ready{display:inline-flex;margin-top:7px;padding:5px 8px;border-radius:999px;background:#f4eddf;color:#74542e;font-size:10px;font-weight:850}
+.waitlist-stock.available,.waitlist-ready{background:#eaf2ed;color:#3c6b4d}
+.waitlist-status.waiting{background:#f2ecfb;color:#644798}
+.waitlist-status.notified{background:#e9edf8;color:#425a9c}
+.waitlist-status.done{background:#eaf2ed;color:#3c6b4d}
+.waitlist-ready{margin-left:6px}
+.waitlist-customer{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:15px;padding:16px 0;border-bottom:1px solid var(--line)}
+.waitlist-customer:last-child{border-bottom:0;padding-bottom:0}
+.waitlist-customer-info strong{font-size:15px}
+.waitlist-customer-info .meta{margin-top:5px;overflow-wrap:anywhere}
+.waitlist-customer-actions{display:grid;gap:7px;justify-items:end}
+.waitlist-status-edit{display:flex;gap:7px;align-items:center}
+.waitlist-status-edit .input{min-height:38px;padding:8px 10px;font-size:11px;width:190px}
+@media(max-width:600px){.waitlist-customer{grid-template-columns:1fr;gap:10px}.waitlist-customer-actions{justify-items:start}.waitlist-status-edit{width:100%}.waitlist-status-edit .input{width:100%;min-width:0;flex:1}.waitlist-product-head h2{font-size:21px}.waitlist-product-head img{width:60px;height:60px}}
+

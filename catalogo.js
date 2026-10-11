@@ -3,6 +3,7 @@ const SUPABASE_URL="https://iugryzipeqbgoplwqdqn.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_PbXYTHU7fS3VlkcrnvkwLQ_5A5JHwIR";
 const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
 const S={products:[],category:"Todos",query:"",cart:new Map(),config:{store_name:"Tudo & Tal",whatsapp_number:"",reservation_minutes:60}};
+const interest={productId:null,posting:false,trigger:null};
 const $=s=>document.querySelector(s);
 const money=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
@@ -27,9 +28,71 @@ function renderProducts(){
     const stock=Number(p.available_qty||0);
     const discount=Number(p.discount_percent||0),original=Number(p.original_price||p.price||0);
     const priceHtml=discount>0?'<div class="product-price promo"><small>'+money(original)+'</small><strong>'+money(p.price)+'</strong><span>'+String(discount).replace(".",",")+'% OFF</span></div>':'<div class="product-price">'+money(p.price)+'</div>';
-    return '<article class="product-card'+(discount>0?" on-sale":"")+'"><div class="product-photo">'+(discount>0?'<span class="sale-ribbon">'+String(discount).replace(".",",")+'% OFF</span>':'')+'<img src="'+esc(safePhoto(p))+'" alt="'+esc(p.name)+'" loading="lazy"></div><div class="product-body"><div class="product-category">'+esc(p.category||"Tudo & Tal")+'</div><div class="product-name">'+esc(p.name)+'</div><div class="product-meta">'+esc(meta||p.sku)+'</div><span class="stock-pill">'+stock+' disponível'+(stock===1?"":"is")+'</span><div class="product-bottom">'+priceHtml+'<button class="add-btn" data-add="'+esc(p.id)+'" aria-label="Adicionar '+esc(p.name)+'">+</button></div></div></article>';
+    const soldOut=stock<=0;
+    const stockHtml=soldOut?'<span class="stock-pill sold-out">Esgotado</span>':'<span class="stock-pill">'+stock+' disponível'+(stock===1?"":"is")+'</span>';
+    const addHtml=soldOut?'':'<button class="add-btn" type="button" data-add="'+esc(p.id)+'" aria-label="Adicionar '+esc(p.name)+'">+</button>';
+    const interestHtml=soldOut?'<button class="waitlist-btn" type="button" data-interest="'+esc(p.id)+'" aria-label="Quero ser avisado sobre '+esc(p.name)+'">Quero ser avisado</button>':'';
+    return '<article class="product-card'+(soldOut?" sold-out":"")+(discount>0?" on-sale":"")+'"><div class="product-photo">'+(discount>0?'<span class="sale-ribbon">'+String(discount).replace(".",",")+'% OFF</span>':'')+'<img src="'+esc(safePhoto(p))+'" alt="'+esc(p.name)+'" loading="lazy"></div><div class="product-body"><div class="product-category">'+esc(p.category||"Tudo & Tal")+'</div><div class="product-name">'+esc(p.name)+'</div><div class="product-meta">'+esc(meta||p.sku)+'</div>'+stockHtml+'<div class="product-bottom">'+priceHtml+addHtml+'</div>'+interestHtml+'</div></article>';
   }).join(""):'<div class="empty">Nenhum produto encontrado com esse filtro.</div>';
   $("#catalogGrid").querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>addToCart(b.dataset.add));
+  $("#catalogGrid").querySelectorAll("[data-interest]").forEach(b=>b.onclick=()=>openInterest(b.dataset.interest,b));
+}
+function openInterest(id,trigger){
+  const p=productById(id);if(!p)return;
+  if(Number(p.available_qty||0)>0){toast("Este produto já está disponível para comprar.");return}
+  interest.productId=id;interest.trigger=trigger;
+  $("#interestForm").reset();$("#interestForm").classList.remove("hidden");
+  $("#interestSuccess").classList.add("hidden");
+  $("#interestError").textContent="";$("#interestError").classList.add("hidden");
+  $("#interestProductName").textContent=p.name;
+  $("#interestProductPhoto").src=safePhoto(p);
+  $("#interestModal").classList.remove("hidden");
+  $("#interestName").focus();
+}
+function closeInterest(){
+  if(interest.posting)return;
+  $("#interestModal").classList.add("hidden");
+  $("#interestForm").reset();interest.productId=null;
+  const trigger=interest.trigger?.isConnected?interest.trigger:
+    [...document.querySelectorAll("[data-interest]")].find(b=>b.dataset.interest===interest.trigger?.dataset.interest);
+  if(trigger)trigger.focus();else $("#catalogSearch").focus();
+}
+function interestError(message){
+  $("#interestError").textContent=message;$("#interestError").classList.remove("hidden");
+}
+async function submitInterest(e){
+  e.preventDefault();if(interest.posting||!interest.productId)return;
+  const name=$("#interestName").value.trim();
+  let phone=$("#interestPhone").value.replace(/\D/g,"");
+  if(phone.length===10||phone.length===11)phone="55"+phone;
+  if(name.length<2||name.length>80){interestError("Informe seu nome, com 2 a 80 caracteres.");$("#interestName").focus();return}
+  if(!/^55[1-9][0-9]([2-9][0-9]{7}|9[0-9]{8})$/.test(phone)){
+    interestError("Informe um WhatsApp válido com DDD.");$("#interestPhone").focus();return;
+  }
+  const button=$("#registerInterestButton");interest.posting=true;
+  button.disabled=true;button.textContent="Registrando interesse...";
+  $("#interestError").classList.add("hidden");
+  try{
+    const {error}=await client.rpc("create_catalog_interest",{p_product_id:interest.productId,p_customer_name:name,p_customer_phone:phone});
+    if(error)throw error;
+    $("#interestForm").reset();$("#interestForm").classList.add("hidden");
+    $("#interestSuccess").classList.remove("hidden");$("#interestSuccess").focus();
+  }catch(err){
+    console.error("Lista de espera",err?.code);
+    interestError(err?.code==="22023"?err.message:"Não conseguimos registrar agora. Tente novamente em instantes.");
+    await loadProducts();
+  }finally{
+    interest.posting=false;button.disabled=false;button.textContent="Entrar na lista de espera";
+  }
+}
+function interestKeyboard(e){
+  if($("#interestModal").classList.contains("hidden"))return;
+  if(e.key==="Escape"){e.preventDefault();closeInterest();return}
+  if(e.key!=="Tab")return;
+  const items=[...$("#interestModal").querySelectorAll('button:not(:disabled),input:not(:disabled)')].filter(el=>el.offsetParent!==null);
+  const first=items[0],last=items[items.length-1];
+  if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus()}
+  else if(!e.shiftKey&&(document.activeElement===last||document.activeElement===$("#interestSuccess"))){e.preventDefault();first?.focus()}
 }
 function addToCart(id){
   const p=productById(id);if(!p)return;
@@ -102,7 +165,7 @@ async function loadProducts(){
   S.products=data||[];
   for(const [id,qty] of [...S.cart.entries()]){
     const p=productById(id);
-    if(!p)S.cart.delete(id); else if(qty>Number(p.available_qty||0))S.cart.set(id,Number(p.available_qty||0));
+    if(!p||Number(p.available_qty||0)<=0)S.cart.delete(id); else if(qty>Number(p.available_qty||0))S.cart.set(id,Number(p.available_qty||0));
   }
   renderCategories();renderProducts();renderCart();
 }
@@ -111,9 +174,14 @@ async function init(){
   $("#checkoutButton").onclick=openCheckout;$("#closeCheckout").onclick=()=>$("#checkoutModal").classList.add("hidden");
   $("#checkoutForm").addEventListener("submit",submitOrder);
   $("#backCatalog").onclick=()=>$("#successModal").classList.add("hidden");
+  $("#closeInterest").onclick=closeInterest;$("#backFromInterest").onclick=closeInterest;
+  $("#interestForm").addEventListener("submit",submitInterest);
+  $("#interestModal").addEventListener("click",e=>{if(e.target===$("#interestModal"))closeInterest()});
+  document.addEventListener("keydown",interestKeyboard);
   $("#catalogSearch").addEventListener("input",e=>{S.query=e.target.value;renderProducts()});
   await Promise.all([loadConfig(),loadProducts()]);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")loadProducts()});
   setInterval(()=>{if(document.visibilityState==="visible")loadProducts()},30000);
 }
 document.addEventListener("DOMContentLoaded",init);
+
