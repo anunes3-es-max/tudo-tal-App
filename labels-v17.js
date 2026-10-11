@@ -30,10 +30,10 @@ function label17Setup(){
       renderLabel();
     });
   });
-  const pt=document.querySelector("#printPt260Btn");
-  if(pt&&!pt.dataset.v17){
-    pt.dataset.v17="1";
-    pt.addEventListener("click",printPt260Android);
+  const ios=document.querySelector("#printIosDLabelBtn");
+  if(ios&&!ios.dataset.v18){
+    ios.dataset.v18="1";
+    ios.addEventListener("click",printIosDLabel);
   }
 }
 
@@ -352,5 +352,50 @@ async function printPt260Android(){
     toast("Não consegui preparar a PT260: "+String(err?.message||"erro").slice(0,80));
   }finally{
     setTimeout(function(){if(btn){btn.disabled=false;btn.innerHTML=old}},600);
+  }
+}
+
+
+function label17CanvasBlob(canvas){
+  return new Promise(function(resolve,reject){
+    canvas.toBlob(function(blob){
+      if(blob)resolve(blob);
+      else reject(new Error("Falha ao gerar a imagem."));
+    },"image/png",1);
+  });
+}
+
+async function printIosDLabel(){
+  const btn=document.querySelector("#printIosDLabelBtn");
+  const old=btn?.innerHTML;
+  if(btn){btn.disabled=true;btn.textContent="Preparando etiqueta..."}
+  try{
+    const canvas=await label17SvgToCanvas(label17CurrentSvg(),1200,1200);
+    const blob=await label17CanvasBlob(canvas);
+    const filename=label17FileName()+".png";
+    const file=new File([blob],filename,{type:"image/png"});
+
+    if(navigator.share && (!navigator.canShare || navigator.canShare({files:[file]}))){
+      await navigator.share({
+        files:[file],
+        title:"Etiqueta Tudo & Tal",
+        text:"Etiqueta 5 × 5 cm pronta para imprimir na PT260 pelo DLabel."
+      });
+      toast("Etiqueta pronta. No compartilhamento, escolha o DLabel.");
+      return;
+    }
+
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download=filename;
+    a.click();
+    setTimeout(function(){URL.revokeObjectURL(a.href)},1800);
+    toast("Etiqueta salva em PNG. Abra o DLabel e importe a imagem.");
+  }catch(err){
+    if(err?.name==="AbortError")return;
+    console.error(err);
+    toast("Não consegui abrir o compartilhamento. Use “Baixar PNG” e importe no DLabel.");
+  }finally{
+    if(btn){btn.disabled=false;btn.innerHTML=old}
   }
 }
