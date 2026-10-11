@@ -1178,3 +1178,54 @@ body::before{opacity:.12;background-image:radial-gradient(rgba(120,87,232,.22) .
   }
   #labelPreview svg{width:50mm!important;height:50mm!important}
 }
+
+
+/* v23 — PDV com carrinho, cancelamento e descontos */
+.product-promo-row{display:grid;grid-template-columns:minmax(220px,.7fr) minmax(260px,1fr);gap:14px;align-items:end;margin-top:13px}
+.product-discount-preview{min-height:68px;display:flex;flex-direction:column;justify-content:center;padding:12px 14px;border:1px solid #ded8ec;border-radius:15px;background:linear-gradient(135deg,#f7f4ff,#fff)}
+.product-discount-preview strong{color:#17181f;font-size:14px}
+.product-discount-preview span{margin-top:4px;color:#777a87;font-size:10px;line-height:1.45}
+.pdv-scan-error{margin:14px 0;padding:12px 14px;border:1px solid #f1c3cd;border-radius:14px;color:#a73256;background:#fff1f5;font-size:11px}
+.pdv-cart{margin-top:16px;padding:0;overflow:hidden}
+.pdv-cart-head{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px 20px;border-bottom:1px solid #e7e8ee;background:linear-gradient(135deg,#171922,#272238);color:#fff}
+.pdv-cart-head h2{margin:0;color:#fff;font-size:22px}
+.pdv-cart-head .meta{color:#b9bbc6}
+.pdv-cart-head>span{display:inline-flex;min-width:32px;height:32px;align-items:center;justify-content:center;border-radius:999px;background:linear-gradient(135deg,#e94b7c,#7857e8);font-size:11px;font-weight:900}
+.pdv-cart-items{display:grid;gap:9px;padding:14px}
+.pdv-cart-item{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:13px;border:1px solid #e0e2e9;border-radius:16px;background:#fff}
+.pdv-cart-item-main{min-width:0}
+.pdv-cart-item-main>strong{display:block;color:#181920;font-size:14px}
+.pdv-cart-prices{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:7px}
+.pdv-cart-prices del{color:#9799a4;font-size:10px}
+.pdv-cart-prices b{color:#e94b7c;font-size:14px}
+.pdv-discount-pill{padding:4px 7px;border-radius:999px;color:#fff;background:linear-gradient(135deg,#e94b7c,#7857e8);font-size:8px;font-weight:900}
+.pdv-item-controls{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap}
+.pdv-item-controls button{min-width:34px;min-height:34px;border:1px solid #dfe1e8;border-radius:10px;background:#f7f8fb;color:#242630;font-weight:900}
+.pdv-item-controls .remove{padding:7px 9px;color:#b63361;background:#fff1f5;border-color:#f0ccd7;font-size:9px}
+.pdv-discount-box{margin:0 14px 14px;padding:15px;border:1px solid #ded8ee;border-radius:18px;background:linear-gradient(135deg,#f8f6ff,#fff)}
+.pdv-discount-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px}
+.pdv-discount-head h3{margin:0;color:#22242d;font-size:15px}
+.pdv-discount-head strong{font-size:25px;color:#7857e8}
+.pdv-discount-control{display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:center;margin-top:10px}
+.pdv-discount-control .input{text-align:center;font-size:17px;font-weight:900}
+.pdv-discount-chips{display:flex;gap:6px;overflow:auto;scrollbar-width:none}
+.pdv-discount-chips::-webkit-scrollbar{display:none}
+.pdv-discount-chips button{flex:0 0 auto;min-height:36px;padding:7px 10px;border:1px solid #dcddea;border-radius:999px;background:#fff;color:#555967;font-size:10px;font-weight:900}
+.pdv-discount-chips button.active{color:#fff;border-color:transparent;background:linear-gradient(135deg,#e94b7c,#7857e8)}
+.pdv-summary{display:grid;gap:7px;margin:0 14px 14px;padding:14px;border:1px solid #e0e2e9;border-radius:16px;background:#f8f8fb}
+.pdv-summary-row{display:flex;align-items:center;justify-content:space-between;gap:14px;color:#777a87;font-size:11px}
+.pdv-summary-row strong{color:#292b34}
+.pdv-summary-row.discount strong{color:#b63361}
+.pdv-summary-row.total{padding-top:8px;border-top:1px solid #dedfe6;color:#242630;font-size:13px;font-weight:900}
+.pdv-summary-row.total strong{font:800 25px var(--serif);color:#15161c}
+.pdv-checkout{margin:0 14px 14px;padding:15px;border:1px solid #e0e2e9;border-radius:18px;background:#fff}
+.pdv-checkout-actions{display:grid;grid-template-columns:1fr auto;gap:9px;margin-top:13px}
+.pdv-cancel-purchase{color:#b63361!important;border-color:#efc6d2!important;background:#fff1f5!important}
+.pdv-empty-cart{margin-top:16px}
+@media(max-width:650px){
+  .product-promo-row{grid-template-columns:1fr}
+  .pdv-cart-item{grid-template-columns:1fr}
+  .pdv-item-controls{justify-content:flex-start}
+  .pdv-discount-control{grid-template-columns:1fr}
+  .pdv-checkout-actions{grid-template-columns:1fr}
+}
