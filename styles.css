@@ -1229,3 +1229,8 @@ body::before{opacity:.12;background-image:radial-gradient(rgba(120,87,232,.22) .
   .pdv-discount-control{grid-template-columns:1fr}
   .pdv-checkout-actions{grid-template-columns:1fr}
 }
+
+.promo-admin-badge{margin-left:4px;color:#fff!important;background:linear-gradient(135deg,#e94b7c,#7857e8)!important}
+.promo-admin-price{display:grid!important;justify-items:end;gap:2px}
+.promo-admin-price small{color:#9698a3;font-size:10px;font-family:var(--sans);text-decoration:line-through}
+.promo-admin-price strong{color:#e94b7c;font-size:18px}
