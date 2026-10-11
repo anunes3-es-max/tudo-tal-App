@@ -59,7 +59,7 @@ async function loginAdmin(e){
     const {error}=await authClient.auth.signInWithPassword({email,password});
     if(error)throw error;
     const ok=await verifyAdminAndUnlock();
-    if(ok) location.href=APP_URL+"?v=15";
+    if(ok) location.href=APP_URL+"?v=26";
   }catch(err){
     const msg=String(err?.message||"");
     authStatus(/confirm/i.test(msg)
@@ -104,7 +104,7 @@ async function saveRecoveredPassword(e){
     recoveryMode=false;
     authStatus("Senha alterada com sucesso. Abrindo a Tudo & Tal...","success");
     const ok=await verifyAdminAndUnlock();
-    if(ok) location.href=APP_URL+"?v=15";
+    if(ok) location.href=APP_URL+"?v=26";
     else{
       document.querySelector("#recoveryForm")?.classList.add("hidden");
       document.querySelector("#adminLoginForm")?.classList.remove("hidden");
@@ -119,7 +119,7 @@ async function checkAdminAccess(){
   authStatus("Verificando sua conta...");
   try{
     const ok=await verifyAdminAndUnlock();
-    if(ok) location.href=APP_URL+"?v=15";
+    if(ok) location.href=APP_URL+"?v=26";
     else{
       const {data:{user}}=await authClient.auth.getUser();
       if(!user)authStatus("Você ainda não está conectado. Entre com e-mail e senha.","wait");
