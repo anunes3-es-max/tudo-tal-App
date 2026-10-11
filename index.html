@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="Tudo & Tal">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/icon.svg">
-  <link rel="stylesheet" href="styles.css?v=12">
+  <link rel="stylesheet" href="styles.css?v=13">
   <title>Tudo & Tal</title>
 </head>
 <body class="auth-locked">
@@ -194,29 +194,57 @@
 
     <section id="view-etiqueta" class="view">
       <div class="section-head">
-        <div><p class="eyebrow">ETIQUETA</p><h1>Identificação — nome + QR</h1></div>
+        <div>
+          <p class="eyebrow">ETIQUETAS 5 × 5 CM</p>
+          <h1>Impressão & identificação</h1>
+          <p class="hint">Produto com QR amplo para leitura rápida e etiquetas de gratidão no mesmo visual fashion-tech do app.</p>
+        </div>
       </div>
-      <div class="panel">
-        <label>Produto
-          <select id="labelProduct" class="input"></select>
-        </label>
-        <div class="two label-settings">
-          <label>Altura da etiqueta (mm)
-            <input id="labelHeight" class="input" type="number" min="50" max="100" step="1" value="50">
+
+      <div class="label-mode-tabs" id="labelModeTabs" aria-label="Tipo de etiqueta">
+        <button type="button" class="active" data-label-mode="produto">Produto + QR</button>
+        <button type="button" data-label-mode="gratidao-quadrada">Gratidão quadrada</button>
+        <button type="button" data-label-mode="gratidao-redonda">Gratidão redonda</button>
+      </div>
+
+      <div class="panel label-workspace">
+        <div id="productLabelControls">
+          <label>Produto
+            <select id="labelProduct" class="input"></select>
           </label>
-          <label>Espaço entre impressões (mm)
+        </div>
+
+        <div class="label-fixed-info">
+          <div><span>Formato</span><strong>50 × 50 mm</strong></div>
+          <label>Avanço após a etiqueta
             <input id="labelGap" class="input" type="number" min="0" max="20" step="0.5" value="3">
           </label>
         </div>
-        <p class="hint">A etiqueta mostra somente o nome do produto e um QR grande. O QR contém o SKU usado para estoque e vendas.</p>
-        <div id="labelPreviewWrap" class="label-preview-wrap">
-          <div id="labelPreview" class="label-vertical"></div>
+
+        <div id="labelModeHelp" class="label-mode-help">
+          <strong>QR em primeiro lugar.</strong>
+          <span>O código fica isolado por uma área branca ampla para facilitar a leitura pela câmera do celular e pelo leitor 2D.</span>
         </div>
-        <div class="button-row">
-          <button id="printLabelBtn" class="primary">Imprimir identificação</button>
-          <button id="downloadLabelBtn" class="secondary">Baixar PNG</button>
+
+        <div id="labelPreviewWrap" class="label-preview-wrap label-preview-stage">
+          <div id="labelPreview" class="label-square"></div>
         </div>
-        <p class="hint">O espaço configurado é acrescentado como faixa branca depois de cada etiqueta, ideal para rolo adesivo contínuo.</p>
+
+        <div class="label-print-actions">
+          <button id="printLabelBtn" class="primary" type="button">Imprimir pelo sistema</button>
+          <button id="printPt260Btn" class="secondary pt260-button" type="button"><span>PT260</span> Imprimir direto no Android</button>
+          <button id="downloadLabelBtn" class="ghost" type="button">Baixar PNG</button>
+        </div>
+
+        <div class="printer-tech-note">
+          <div>
+            <strong>PT260 pelo celular</strong>
+            <p>No Android, o botão PT260 envia a etiqueta do nosso app para a impressora via ponte ESC/POS. A configuração do Bluetooth é feita uma única vez no serviço de impressão.</p>
+          </div>
+          <span class="printer-chip">ESC/POS • 203 DPI • 384 dots</span>
+        </div>
+
+        <p class="hint thermal-note">A PT260 é térmica monocromática: na tela e no PNG as etiquetas de gratidão mantêm as cores do app; na impressão térmica elas saem em preto e branco.</p>
       </div>
     </section>
 
@@ -415,6 +443,7 @@
   <script src="cloud-sync.js?v=6"></script>
   <script src="app-2.js"></script>
   <script src="app-3.js?v=13"></script>
+  <script src="labels-v17.js?v=1"></script>
   <script src="app-4.js?v=8"></script>
   <script src="catalog-admin.js?v=2"></script>
   <script src="analytics.js?v=3"></script>
