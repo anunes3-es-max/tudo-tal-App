@@ -233,9 +233,18 @@
         const {error}=await c.from(table).delete().not("id","is",null);
         if(error)throw error;
       }
-      for(const storeName of ["products","sales","cash"]){
-        await upsertBatch(storeName,await dbAll(storeName));
+
+      await upsertBatch("products",await dbAll("products"));
+
+      // INSERT direto em vendas fica bloqueado para impedir que cache antigo
+      // recrie histórico apagado. Na restauração de backup usamos um RPC
+      // administrativo dedicado, que mantém a proteção do PDV.
+      for(const sale of await dbAll("sales")){
+        const {error}=await c.rpc("restore_sale_backup",{p_sale:saleToCloud(sale)});
+        if(error)throw error;
       }
+
+      await upsertBatch("cash",await dbAll("cash"));
       status("☁️ Backup restaurado e sincronizado com a nuvem.","success");
       return true;
     }catch(err){
