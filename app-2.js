@@ -1,4 +1,15 @@
-function renderProducts(){const q=($("#productSearch")?.value||"").trim().toLowerCase();const arr=[...state.products].sort((a,b)=>a.name.localeCompare(b.name,"pt-BR")).filter(p=>!q||[p.name,p.sku,p.brand,p.owner,p.category].join(" ").toLowerCase().includes(q));$("#productList").innerHTML=arr.length?arr.map(p=>`<div class="list-item">${p.photo?`<img src="${p.photo}" alt="">`:`<img src="assets/icon.svg" alt="">`}<div class="list-main"><strong>${esc(p.name)}</strong><div class="meta">${esc(p.sku)} • ${esc(p.category)} ${p.size?`• ${esc(p.size)}`:""}</div><div class="meta">${esc(p.owner)} • <span class="badge ${p.qty>0?"ok":"zero"}">${p.qty>0?`${p.qty} em estoque`:"Sem estoque"}</span></div><div class="item-actions"><button class="mini" onclick="editProduct('${p.id}')">Editar</button><button class="mini" onclick="labelProduct('${p.id}')">Etiqueta</button><button class="mini" onclick="sellProduct('${p.sku}')">Vender</button></div></div><div class="price">${money(p.price)}</div></div>`).join(""):`<div class="empty">Nenhum produto encontrado.</div>`}
+function renderProducts(){
+  const q=($("#productSearch")?.value||"").trim().toLowerCase();
+  const arr=[...state.products].sort((a,b)=>a.name.localeCompare(b.name,"pt-BR")).filter(p=>!q||[p.name,p.sku,p.brand,p.owner,p.category].join(" ").toLowerCase().includes(q));
+  $("#productList").innerHTML=arr.length?arr.map(p=>{
+    const d=Math.max(0,Math.min(50,Number(p.discountPercent||0)));
+    const promoPrice=Number(p.price||0)*(1-d/100);
+    const photo=p.photo?'<img src="'+p.photo+'" alt="">':'<img src="assets/icon.svg" alt="">';
+    const promo=d?'<span class="badge promo-admin-badge">Promo '+String(d).replace(".",",")+'%</span>':'';
+    const price=d?'<div class="price promo-admin-price"><small>'+money(p.price)+'</small><strong>'+money(promoPrice)+'</strong></div>':'<div class="price">'+money(p.price)+'</div>';
+    return '<div class="list-item">'+photo+'<div class="list-main"><strong>'+esc(p.name)+'</strong><div class="meta">'+esc(p.sku)+' • '+esc(p.category)+(p.size?' • '+esc(p.size):'')+'</div><div class="meta">'+esc(p.owner)+' • <span class="badge '+(p.qty>0?'ok':'zero')+'">'+(p.qty>0?p.qty+' em estoque':'Sem estoque')+'</span> '+promo+'</div><div class="item-actions"><button class="mini" onclick="editProduct(\''+p.id+'\')">Editar</button><button class="mini" onclick="labelProduct(\''+p.id+'\')">Etiqueta</button><button class="mini" onclick="sellProduct(\''+p.sku+'\')">Vender</button></div></div>'+price+'</div>';
+  }).join(""):'<div class="empty">Nenhum produto encontrado.</div>';
+}
 function fillCategoryOptions(){$("#productCategory").innerHTML=Object.keys(CATEGORIES).map(c=>`<option>${esc(c)}</option>`).join("")}
 function resetProductForm(){$("#productForm").reset();$("#productId").value="";$("#productQty").value=1;$("#productMode").value="consignado";if($("#productDiscount"))$("#productDiscount").value=0;$("#productFormTitle").textContent="Novo produto";state.editPhoto=null;$("#photoPreview").innerHTML="Sem foto"}
 function prepareProductForm(){if(!$("#productId").value)resetProductForm()}
