@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="Tudo & Tal">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/icon.svg">
-  <link rel="stylesheet" href="styles.css?v=10">
+  <link rel="stylesheet" href="styles.css?v=11">
   <title>Tudo & Tal</title>
 </head>
 <body class="auth-locked">
@@ -56,7 +56,12 @@
         <span>Moda • Beleza • Segunda vida</span>
       </div>
     </div>
-    <button id="installBtn" class="ghost hidden">Instalar</button>
+    <div class="top-actions">
+      <button id="orderBell" class="order-bell" data-nav="pedidos" type="button" aria-label="Pedidos do catálogo">
+        <span class="bell-icon">◌</span><span>Pedidos</span><b id="orderBadge" class="hidden">0</b>
+      </button>
+      <button id="installBtn" class="ghost hidden">Instalar</button>
+    </div>
   </header>
 
   <main id="app">
@@ -79,7 +84,10 @@
           <button class="quick" data-nav="produtos"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13 13 20a2 2 0 0 1-3 0L3 13V3h10l7 7a2 2 0 0 1 0 3Z"/><circle cx="7.5" cy="7.5" r="1"/></svg><span>Produtos</span></button>
           <button class="quick" data-nav="repasses"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="12" cy="12" r="3"/><path d="M6 9h.01M18 15h.01"/></svg><span>Repasses</span></button>
           <button class="quick" data-nav="etiqueta"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8V3h10v5M7 17H3V8h18v9h-4"/><path d="M7 14h10v7H7Z"/><path d="M17 11h.01"/></svg><span>Etiqueta</span></button>
-          <button class="quick" data-nav="caixa"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="12" cy="12" r="3"/><path d="M6 9h.01M18 15h.01"/></svg><span>Caixa</span></button><button class="quick" data-nav="analytics"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-7M22 19V3"/><path d="M2 19h22"/></svg><span>Análises</span></button>
+          <button class="quick" data-nav="caixa"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="12" cy="12" r="3"/><path d="M6 9h.01M18 15h.01"/></svg><span>Caixa</span></button>
+          <button class="quick" data-nav="analytics"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-7M22 19V3"/><path d="M2 19h22"/></svg><span>Análises</span></button>
+          <button class="quick quick-orders" data-nav="pedidos"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 7h12l1 14H5L6 7Z"/><path d="M9 9V5a3 3 0 0 1 6 0v4"/></svg><span>Pedidos</span><b id="orderQuickBadge" class="quick-badge hidden">0</b></button>
+          <a class="quick quick-link" href="catalogo.html" target="_blank" rel="noopener"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v14H4Z"/><path d="M8 9h8M8 13h5"/></svg><span>Abrir catálogo</span></a>
         </div>
       </div>
       <div class="panel">
@@ -314,8 +322,38 @@
       </div>
     </section>
 
+      <section id="view-pedidos" class="view">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">CATÁLOGO • WHATSAPP</p>
+          <h1>Pedidos</h1>
+          <p class="hint">Os pedidos feitos no catálogo entram aqui automaticamente. A reserva padrão é de 1 hora.</p>
+        </div>
+        <a class="secondary catalog-open-link" href="catalogo.html" target="_blank" rel="noopener">Abrir catálogo</a>
+      </div>
+      <div id="orderSummary" class="order-summary"></div>
+      <div id="orderFilters" class="order-filters"></div>
+      <div id="catalogOrdersList" class="orders-grid"></div>
+    </section>
+
     <section id="view-config" class="view">
       <div class="section-head"><div><p class="eyebrow">SISTEMA</p><h1>Configurações</h1></div></div>
+      <div class="panel catalog-config-panel">
+        <div class="panel-title">
+          <div><h2>Catálogo & WhatsApp</h2><p class="hint">Configure para onde o cliente será encaminhado depois que o pedido já tiver entrado no sistema.</p></div>
+          <a class="secondary catalog-open-link" href="catalogo.html" target="_blank" rel="noopener">Ver catálogo</a>
+        </div>
+        <div class="two">
+          <label>WhatsApp da loja
+            <input id="catalogWhatsapp" class="input" inputmode="tel" placeholder="DDD + número">
+          </label>
+          <label>Tempo de reserva (minutos)
+            <input id="catalogReservationMinutes" class="input" type="number" min="15" max="240" value="60">
+          </label>
+        </div>
+        <p id="catalogConfigStatus" class="auth-status">Carregando configuração do catálogo...</p>
+        <button id="saveCatalogConfig" class="primary" type="button">Salvar catálogo</button>
+      </div>
       <div class="panel">
         <h2>Comissões por peça consignada</h2>
         <div class="commission-table">
@@ -371,14 +409,15 @@
   <div id="toast" class="toast"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="auth-setup.js?v=3"></script>
+  <script src="auth-setup.js?v=4"></script>
   <script src="qr-v1.js?v=2"></script>
-  <script src="app-1.js?v=11"></script>
+  <script src="app-1.js?v=12"></script>
   <script src="cloud-sync.js?v=6"></script>
   <script src="app-2.js"></script>
   <script src="app-3.js?v=13"></script>
   <script src="app-4.js?v=8"></script>
+  <script src="catalog-admin.js?v=1"></script>
   <script src="analytics.js?v=3"></script>
-  <script src="app-5.js?v=8"></script>
+  <script src="app-5.js?v=9"></script>
 </body>
 </html>
