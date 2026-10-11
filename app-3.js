@@ -1,4 +1,42 @@
-function parseScannedValue(raw){try{const u=new URL(raw),s=u.searchParams.get("sku");if(s)return s.toUpperCase()}catch(_){}return String(raw||"").trim().toUpperCase()}
+function scannerCleanValue(raw){
+  let value=String(raw??"");
+  try{value=value.normalize("NFKC")}catch(_){}
+  value=value
+    .replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200D\u2060\uFEFF]/g,"")
+    .replace(/[‐‑‒–—−]/g,"-")
+    .trim();
+  try{
+    const u=new URL(value);
+    const s=u.searchParams.get("sku");
+    if(s)value=s;
+  }catch(_){}
+  try{value=decodeURIComponent(value)}catch(_){}
+  return String(value||"").trim().toUpperCase();
+}
+function skuScanKey(value){
+  return scannerCleanValue(value).replace(/[^A-Z0-9]/g,"");
+}
+function parseScannedValue(raw){
+  return scannerCleanValue(raw);
+}
+function findProductFromScan(raw){
+  const cleaned=scannerCleanValue(raw);
+  if(!cleaned)return null;
+  let p=state.products.find(function(x){
+    return scannerCleanValue(x.sku)===cleaned;
+  });
+  if(p)return p;
+
+  const key=skuScanKey(cleaned);
+  if(!key)return null;
+  const matches=state.products.filter(function(x){
+    const productKey=skuScanKey(x.sku);
+    return productKey&&(key===productKey||key.endsWith(productKey)||key.includes(productKey));
+  }).sort(function(a,b){
+    return skuScanKey(b.sku).length-skuScanKey(a.sku).length;
+  });
+  return matches[0]||null;
+}
 function renderSaleLookup(){const sku=$("#saleSku").value.trim();if(sku)lookupSaleSku();else $("#saleProductCard").innerHTML=`<div class="empty">Leia o QR com a câmera/leitor 2D ou digite o SKU.</div>`;setTimeout(()=>$("#saleSku")?.focus(),120)}
 function infinityPayDefaults(){
   return {
@@ -118,12 +156,13 @@ function updatePaymentFields(){
 }
 
 function lookupSaleSku(){
-  const sku=parseScannedValue($("#saleSku").value);
-  $("#saleSku").value=sku;
-  const p=state.products.find(x=>String(x.sku).toUpperCase()===sku);
+  const raw=$("#saleSku").value;
+  const sku=parseScannedValue(raw);
+  const p=findProductFromScan(raw);
+  $("#saleSku").value=p?p.sku:sku;
   state.currentSaleProduct=p||null;
   if(!p){
-    $("#saleProductCard").innerHTML=sku?`<div class="panel"><strong>SKU não encontrado.</strong><div class="meta">${esc(sku)}</div></div>`:"";
+    $("#saleProductCard").innerHTML=sku?`<div class="panel"><strong>QR/SKU lido, mas não encontrei esse produto.</strong><div class="meta">${esc(sku)}</div><p class="hint">O sistema já remove automaticamente prefixos, caracteres invisíveis e diferenças de hífen enviados por leitores 2D.</p></div>`:"";
     return;
   }
   const rate=p.mode==="consignado"?commissionRate(p.price):0;
