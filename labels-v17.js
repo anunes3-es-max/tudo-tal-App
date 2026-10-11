@@ -368,7 +368,7 @@ function label17CanvasBlob(canvas){
 async function printIosXdLabel(){
   const btn=document.querySelector("#printIosXdLabelBtn");
   const old=btn?.innerHTML;
-  if(btn){btn.disabled=true;btn.textContent="Preparando etiqueta..."}
+  if(btn){btn.disabled=true;btn.textContent="Gerando PNG 5 × 5..."}
   try{
     const canvas=await label17SvgToCanvas(label17CurrentSvg(),1200,1200);
     const blob=await label17CanvasBlob(canvas);
@@ -379,22 +379,24 @@ async function printIosXdLabel(){
       await navigator.share({
         files:[file],
         title:"Etiqueta Tudo & Tal",
-        text:"Etiqueta 5 × 5 cm pronta para imprimir na PT260 pelo XDLabel Studio."
+        text:"Salve esta etiqueta no iPhone e depois importe-a no XDLabel Studio."
       });
-      toast("Etiqueta pronta. No compartilhamento, escolha o XDLabel Studio.");
+      toast("Salve a imagem. Depois abra o XDLabel Studio → Imagem/Galeria e selecione a etiqueta.");
       return;
     }
 
     const a=document.createElement("a");
     a.href=URL.createObjectURL(blob);
     a.download=filename;
+    document.body.appendChild(a);
     a.click();
+    a.remove();
     setTimeout(function(){URL.revokeObjectURL(a.href)},1800);
-    toast("Etiqueta salva em PNG. Abra o XDLabel Studio e importe a imagem.");
+    toast("PNG salvo. Agora abra o XDLabel Studio → Imagem/Galeria e selecione a etiqueta.");
   }catch(err){
     if(err?.name==="AbortError")return;
     console.error(err);
-    toast("Não consegui abrir o compartilhamento. Use “Baixar PNG” e importe no XDLabel Studio.");
+    toast("Não consegui salvar pelo compartilhamento. Use “Baixar PNG” e importe a imagem no XDLabel Studio.");
   }finally{
     if(btn){btn.disabled=false;btn.innerHTML=old}
   }
