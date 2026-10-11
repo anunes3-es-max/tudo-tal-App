@@ -248,3 +248,13 @@ main{max-width:1220px;margin:auto;padding:24px 18px 70px}
   .catalog-heading h2{font-size:30px}
 }
 @media(max-width:390px){.hero-copy h1{font-size:37px}.product-meta{font-size:9px}}
+
+
+/* Promoções de estoque — v23 */
+.product-photo{position:relative}
+.sale-ribbon{position:absolute;z-index:2;left:9px;top:9px;padding:6px 9px;border-radius:999px;color:#fff;background:linear-gradient(135deg,#e94b7c,#7857e8);box-shadow:0 6px 16px rgba(120,87,232,.24);font-size:9px;font-weight:950;letter-spacing:.04em}
+.product-card.on-sale{border-color:#d8d0ef;box-shadow:0 12px 30px rgba(120,87,232,.10)}
+.product-price.promo{display:grid;gap:1px}
+.product-price.promo small{color:#8d909c;font-size:10px;font-weight:750;text-decoration:line-through}
+.product-price.promo strong{color:#f15a8a;font-size:20px;line-height:1}
+.product-price.promo span{width:max-content;margin-top:3px;padding:3px 6px;border-radius:999px;color:#fff;background:#7857e8;font-size:7.5px;font-weight:950;letter-spacing:.04em}
