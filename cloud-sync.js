@@ -174,10 +174,14 @@
       const productMerge=mergeProducts(localProducts,remoteProducts);
       await upsertBatch("products",productMerge.rows);
 
+      // Depois de enviar eventuais alterações de cadastro, baixa novamente
+      // o estoque do servidor e usa essa cópia como verdade local.
+      // Assim o painel nunca fica preso em quantidade antiga do IndexedDB.
+      const authoritativeProducts=await fetchRemote("products");
       window.__TDT_CLOUD_APPLYING__=true;
       try{
         await dbClear("products");
-        for(const row of productMerge.rows)await localPut("products",row);
+        for(const row of authoritativeProducts)await localPut("products",row);
       }finally{window.__TDT_CLOUD_APPLYING__=false}
 
       for(const storeName of ["sales","cash"]){
