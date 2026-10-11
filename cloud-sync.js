@@ -23,7 +23,7 @@
       id:o.id,sku:o.sku,name:o.name,category:o.category,brand:o.brand||null,size:o.size||null,
       color:o.color||null,condition:o.condition||null,mode:o.mode,partner_id:null,
       owner_name:o.owner||"Tudo e Tal",owner_phone:o.ownerPhone||null,
-      price:Number(o.price||0),discount_percent:Number(o.discountPercent||0),qty:Number(o.qty||0),cost:Number(o.cost||0),
+      price:Number(o.price||0),discount_percent:Number(o.discountPercent||0),qty:Number(o.qty||0),expected_qty:o.expectedQty==null?null:Number(o.expectedQty),cost:Number(o.cost||0),
       stock_type:o.stockType||null,photo_url:o.photo||null,active:o.active!==false,
       created_at:o.createdAt||new Date().toISOString(),
       updated_at:o.updatedAt||o.createdAt||new Date().toISOString()
@@ -151,15 +151,38 @@
       if(error)throw error;
     }
   }
+  async function saveProductAdmin(obj){
+    const c=client();
+    if(!c)throw new Error("Nuvem indisponível nesta sessão.");
+    if(navigator.onLine===false)throw new Error("Conecte à internet para salvar o produto com segurança.");
+    const {data,error}=await c.rpc("save_product",{p_product:productToCloud(obj)});
+    if(error)throw error;
+    const local=productFromCloud(data);
+    window.__TDT_CLOUD_APPLYING__=true;
+    try{await localPut("products",local)}finally{window.__TDT_CLOUD_APPLYING__=false}
+    status("☁️ Produto salvo e estoque confirmado • "+new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}),"success");
+    return local;
+  }
+
+  async function saveCashAdmin(obj){
+    const c=client();
+    if(!c)throw new Error("Nuvem indisponível nesta sessão.");
+    if(navigator.onLine===false)throw new Error("Conecte à internet para registrar o caixa.");
+    const payload=cashToCloud(obj);
+    const {data,error}=await c.rpc("save_cash",{p_cash:payload});
+    if(error)throw error;
+    const local=cashFromCloud(data);
+    window.__TDT_CLOUD_APPLYING__=true;
+    try{await localPut("cash",local)}finally{window.__TDT_CLOUD_APPLYING__=false}
+    status("☁️ Caixa sincronizado • "+new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}),"success");
+    return local;
+  }
+
   async function upsert(store,obj){
     if(!TABLES[store]||!client()||navigator.onLine===false)return false;
     try{
       if(store==="products"){
-        // Cadastro/edição de produto passa por RPC administrativo.
-        // Assim quantidade de estoque só muda por operações explícitas,
-        // nunca por um cache antigo tentando sobrescrever a nuvem.
-        const {error}=await client().rpc("save_product",{p_product:productToCloud(obj)});
-        if(error)throw error;
+        await saveProductAdmin(obj);
       }else if(store==="sales"){
         // Vendas novas só podem nascer pelos RPCs atômicos do PDV.
         // Alterações em vendas já existentes (ex.: repasse pago) usam UPDATE,
@@ -167,6 +190,8 @@
         const payload=toCloud(store,obj);
         const {error}=await client().from(TABLES[store]).update(payload).eq("id",obj.id);
         if(error)throw error;
+      }else if(store==="cash"){
+        await saveCashAdmin(obj);
       }else{
         await upsertBatch(store,[obj]);
       }
@@ -224,7 +249,10 @@
         if(error)throw error;
       }
 
-      await upsertBatch("products",await dbAll("products"));
+      for(const product of await dbAll("products")){
+        const {error}=await c.rpc("save_product",{p_product:productToCloud({...product,expectedQty:null})});
+        if(error)throw error;
+      }
 
       // INSERT direto em vendas fica bloqueado para impedir que cache antigo
       // recrie histórico apagado. Na restauração de backup usamos um RPC
@@ -234,7 +262,10 @@
         if(error)throw error;
       }
 
-      await upsertBatch("cash",await dbAll("cash"));
+      for(const movement of await dbAll("cash")){
+        const {error}=await c.rpc("save_cash",{p_cash:cashToCloud(movement)});
+        if(error)throw error;
+      }
       status("☁️ Backup restaurado e sincronizado com a nuvem.","success");
       return true;
     }catch(err){
@@ -352,5 +383,5 @@
     return ok;
   }
 
-  window.tudoTalCloud={syncAll,syncAndRefresh,upsert,replaceAllFromLocal,registerSaleAtomic,registerSaleCartAtomic,getInfinityPayRate,fetchReceivables,markReceivablePaid,status,get lastStatus(){return lastStatus}};
+  window.tudoTalCloud={syncAll,syncAndRefresh,upsert,saveProductAdmin,saveCashAdmin,replaceAllFromLocal,registerSaleAtomic,registerSaleCartAtomic,getInfinityPayRate,fetchReceivables,markReceivablePaid,status,get lastStatus(){return lastStatus}};
 })();
