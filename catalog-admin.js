@@ -6,7 +6,7 @@
   let config={whatsapp_number:"",reservation_minutes:60};
 
   const c=()=>window.tudoTalSupabase;
-  const statuses=["Todos","Novo","Em atendimento","Aguardando pagamento","Pago","Concluído","Cancelado","Expirado"];
+  const statuses=["Todos","Novo","Em atendimento","Aguardando pagamento","Pago","Concluído","Expirado"];
   const activeStatus=new Set(["Novo","Em atendimento","Aguardando pagamento","Pago"]);
   const phoneForWa=v=>{const d=String(v||"").replace(/\D/g,"");return d.length<=11?"55"+d:d};
   const fmtDate=v=>v?new Date(v).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):"";
@@ -53,7 +53,13 @@
       const action=o.status!=="Concluído"&&o.status!=="Cancelado"&&o.status!=="Expirado"
         ?'<button class="primary mini-order" data-finalize="'+o.id+'">Registrar venda</button>'
         :"";
-      const statusOptions=["Novo","Em atendimento","Aguardando pagamento","Pago","Cancelado"].map(s=>'<option '+(o.status===s?"selected":"")+'>'+s+'</option>').join("");
+      const statusOptions=[
+        ["Novo","Novo"],
+        ["Em atendimento","Em atendimento"],
+        ["Aguardando pagamento","Aguardando pagamento"],
+        ["Pago","Pago"],
+        ["Cancelado","Cancelar e apagar"]
+      ].map(([value,label])=>'<option value="'+value+'" '+(o.status===value?"selected":"")+'>'+label+'</option>').join("");
       const selector=o.status!=="Concluído"&&o.status!=="Expirado"
         ?'<div class="order-status-edit"><select class="input" data-status-select="'+o.id+'">'+statusOptions+'</select><button class="secondary mini-order" data-save-status="'+o.id+'">Salvar status</button></div>'
         :"";
@@ -73,9 +79,16 @@
   }
   async function saveStatus(id){
     const sel=document.querySelector('[data-status-select="'+id+'"]');if(!sel)return;
+    const next=sel.value;
+    if(next==="Cancelado"&&!confirm("Cancelar este pedido vai apagá-lo do sistema e liberar a reserva. Continuar?")){
+      await fetchOrders(true);
+      return;
+    }
     try{
-      const {error}=await c().rpc("update_catalog_order_status",{p_order_id:id,p_status:sel.value});
-      if(error)throw error;toast("Status do pedido atualizado.");await fetchOrders(true);
+      const {data,error}=await c().rpc("update_catalog_order_status",{p_order_id:id,p_status:next});
+      if(error)throw error;
+      toast(next==="Cancelado"?"Pedido cancelado, apagado e estoque liberado.":"Status do pedido atualizado.");
+      await fetchOrders(true);
     }catch(err){console.error(err);toast("Não consegui atualizar o pedido: "+String(err?.message||"erro").slice(0,90))}
   }
   function ensureModal(){
@@ -153,6 +166,7 @@
         fetchOrders(true);
       })
       .on("postgres_changes",{event:"UPDATE",schema:"public",table:"catalog_orders"},()=>fetchOrders(true))
+      .on("postgres_changes",{event:"DELETE",schema:"public",table:"catalog_orders"},()=>fetchOrders(true))
       .subscribe();
   }
   window.renderCatalogOrders=()=>fetchOrders(true);
