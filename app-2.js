@@ -17,4 +17,18 @@ window.editProduct=function(id){const p=state.products.find(x=>x.id===id);if(!p)
 window.labelProduct=function(id){nav("etiqueta");$("#labelProduct").value=id;renderLabel()};
 window.sellProduct=function(sku){nav("venda");$("#saleSku").value=sku;lookupSaleSku()};
 async function fileToPhoto(file){if(!file)return null;return new Promise(resolve=>{const reader=new FileReader();reader.onload=e=>{const img=new Image();img.onload=()=>{const max=720,scale=Math.min(1,max/Math.max(img.width,img.height)),c=document.createElement("canvas");c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);c.getContext("2d").drawImage(img,0,0,c.width,c.height);resolve(c.toDataURL("image/jpeg",.72))};img.onerror=()=>resolve(e.target.result);img.src=e.target.result};reader.readAsDataURL(file)})}
-async function saveProduct(e){e.preventDefault();const id=$("#productId").value,existing=state.products.find(x=>x.id===id),category=$("#productCategory").value,mode=$("#productMode").value,product={id:existing?.id||uid("prd"),sku:existing?.sku||nextSku(category),name:$("#productName").value.trim(),category,brand:$("#productBrand").value.trim(),size:$("#productSize").value.trim(),color:$("#productColor").value.trim(),condition:$("#productCondition").value,mode,owner:$("#productOwner").value.trim(),ownerPhone:$("#productOwnerPhone").value.trim(),price:Number($("#productPrice").value),discountPercent:Number($("#productDiscount")?.value||0),qty:Number($("#productQty").value),cost:Number($("#productCost").value||0),photo:state.editPhoto||existing?.photo||"",stockType:MULTI_CATEGORIES.has(category)?"Múltiplas unidades":"Peça única",createdAt:existing?.createdAt||nowISO(),updatedAt:nowISO()};if(!product.name||!product.owner||product.price<=0||product.qty<0||product.discountPercent<0||product.discountPercent>50){toast("Confira os campos obrigatórios e o desconto de 0% a 50%.");return}await dbPut("products",product);await loadState();$("#productId").value="";toast(`Produto salvo: ${product.sku}`);nav("produtos")}
+async function saveProduct(e){
+  e.preventDefault();
+  const id=$("#productId").value,existing=state.products.find(x=>x.id===id),category=$("#productCategory").value,mode=$("#productMode").value;
+  const product={id:existing?.id||uid("prd"),sku:existing?.sku||nextSku(category),name:$("#productName").value.trim(),category,brand:$("#productBrand").value.trim(),size:$("#productSize").value.trim(),color:$("#productColor").value.trim(),condition:$("#productCondition").value,mode,owner:$("#productOwner").value.trim(),ownerPhone:$("#productOwnerPhone").value.trim(),price:Number($("#productPrice").value),discountPercent:Number($("#productDiscount")?.value||0),qty:Number($("#productQty").value),expectedQty:existing?Number(existing.qty||0):null,cost:Number($("#productCost").value||0),photo:state.editPhoto||existing?.photo||"",stockType:MULTI_CATEGORIES.has(category)?"Múltiplas unidades":"Peça única",createdAt:existing?.createdAt||nowISO(),updatedAt:nowISO()};
+  if(!product.name||!product.owner||product.price<=0||product.qty<0||product.discountPercent<0||product.discountPercent>50){toast("Confira os campos obrigatórios e o desconto de 0% a 50%.");return}
+  try{
+    if(window.tudoTalCloud?.saveProductAdmin)await window.tudoTalCloud.saveProductAdmin(product);else await dbPut("products",product);
+    await loadState();$("#productId").value="";toast("Produto salvo: "+product.sku);nav("produtos");
+  }catch(err){
+    console.error("Salvar produto",err);
+    if(window.tudoTalCloud?.syncAndRefresh)await window.tudoTalCloud.syncAndRefresh();
+    const msg=String(err?.message||"Não consegui salvar o produto.");
+    toast(/estoque mudou/i.test(msg)?msg:"Não consegui salvar: "+msg.slice(0,95));
+  }
+}
