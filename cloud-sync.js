@@ -117,7 +117,12 @@
           ...newer,
           id:sameSku.id,
           sku:sameSku.sku,
-          createdAt:sameSku.createdAt||newer.createdAt
+          // Estoque é sempre soberano na nuvem. Vendas e reservas atualizam
+          // a quantidade no servidor; um cache local antigo nunca pode repor
+          // unidades que já saíram.
+          qty:Number(sameSku.qty||0),
+          createdAt:sameSku.createdAt||newer.createdAt,
+          updatedAt:sameSku.updatedAt||newer.updatedAt
         });
         continue;
       }
