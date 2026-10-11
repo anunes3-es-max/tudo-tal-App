@@ -25,7 +25,9 @@ function renderProducts(){
   $("#catalogGrid").innerHTML=rows.length?rows.map(p=>{
     const meta=[p.brand,p.size,p.condition].filter(Boolean).join(" • ");
     const stock=Number(p.available_qty||0);
-    return '<article class="product-card"><div class="product-photo"><img src="'+esc(safePhoto(p))+'" alt="'+esc(p.name)+'" loading="lazy"></div><div class="product-body"><div class="product-category">'+esc(p.category||"Tudo & Tal")+'</div><div class="product-name">'+esc(p.name)+'</div><div class="product-meta">'+esc(meta||p.sku)+'</div><span class="stock-pill">'+stock+' disponível'+(stock===1?"":"is")+'</span><div class="product-bottom"><div class="product-price">'+money(p.price)+'</div><button class="add-btn" data-add="'+esc(p.id)+'" aria-label="Adicionar '+esc(p.name)+'">+</button></div></div></article>';
+    const discount=Number(p.discount_percent||0),original=Number(p.original_price||p.price||0);
+    const priceHtml=discount>0?'<div class="product-price promo"><small>'+money(original)+'</small><strong>'+money(p.price)+'</strong><span>'+String(discount).replace(".",",")+'% OFF</span></div>':'<div class="product-price">'+money(p.price)+'</div>';
+    return '<article class="product-card'+(discount>0?" on-sale":"")+'"><div class="product-photo">'+(discount>0?'<span class="sale-ribbon">'+String(discount).replace(".",",")+'% OFF</span>':'')+'<img src="'+esc(safePhoto(p))+'" alt="'+esc(p.name)+'" loading="lazy"></div><div class="product-body"><div class="product-category">'+esc(p.category||"Tudo & Tal")+'</div><div class="product-name">'+esc(p.name)+'</div><div class="product-meta">'+esc(meta||p.sku)+'</div><span class="stock-pill">'+stock+' disponível'+(stock===1?"":"is")+'</span><div class="product-bottom">'+priceHtml+'<button class="add-btn" data-add="'+esc(p.id)+'" aria-label="Adicionar '+esc(p.name)+'">+</button></div></div></article>';
   }).join(""):'<div class="empty">Nenhum produto encontrado com esse filtro.</div>';
   $("#catalogGrid").querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>addToCart(b.dataset.add));
 }
