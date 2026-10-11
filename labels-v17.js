@@ -379,9 +379,9 @@ async function printIosXdLabel(){
       await navigator.share({
         files:[file],
         title:"Etiqueta Tudo & Tal",
-        text:"Salve esta etiqueta no iPhone e depois importe-a no XDLabel Studio."
+        text:"Salve esta etiqueta no iPhone. Depois abra o XDLabel Studio e importe a imagem salva."
       });
-      toast("Salve a imagem. Depois abra o XDLabel Studio → Imagem/Galeria e selecione a etiqueta.");
+      toast("Salve a imagem no iPhone. Depois abra o XDLabel Studio e adicione a imagem pela galeria/arquivos.");
       return;
     }
 
@@ -392,7 +392,7 @@ async function printIosXdLabel(){
     a.click();
     a.remove();
     setTimeout(function(){URL.revokeObjectURL(a.href)},1800);
-    toast("PNG salvo. Agora abra o XDLabel Studio → Imagem/Galeria e selecione a etiqueta.");
+    toast("PNG salvo. Agora abra o XDLabel Studio e adicione a imagem pela galeria/arquivos.");
   }catch(err){
     if(err?.name==="AbortError")return;
     console.error(err);
