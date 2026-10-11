@@ -232,19 +232,19 @@
 
         <div class="label-print-actions">
           <button id="printLabelBtn" class="primary" type="button">Imprimir pelo sistema</button>
-          <button id="printPt260Btn" class="secondary pt260-button" type="button"><span>PT260</span> Imprimir direto no Android</button>
+          <button id="printIosDLabelBtn" class="secondary pt260-button ios-print-button" type="button"><span>iPhone</span> Enviar para o DLabel</button>
           <button id="downloadLabelBtn" class="ghost" type="button">Baixar PNG</button>
         </div>
 
         <div class="printer-tech-note">
           <div>
-            <strong>PT260 pelo celular</strong>
-            <p>No Android, o botão PT260 envia a etiqueta do nosso app para a impressora via ponte ESC/POS. A configuração do Bluetooth é feita uma única vez no serviço de impressão.</p>
+            <strong>PT260 pelo iPhone</strong>
+            <p>Toque em “Enviar para o DLabel”. O iPhone abre a tela de compartilhamento com a etiqueta 5 × 5 cm pronta. Escolha o DLabel; se ele não aparecer, salve a imagem em Arquivos/Fotos e importe no DLabel.</p>
           </div>
-          <span class="printer-chip">ESC/POS • 203 DPI • 384 dots</span>
+          <span class="printer-chip">iOS • DLabel • 50 × 50 mm</span>
         </div>
 
-        <p class="hint thermal-note">A PT260 é térmica monocromática: na tela e no PNG as etiquetas de gratidão mantêm as cores do app; na impressão térmica elas saem em preto e branco.</p>
+        <p class="hint thermal-note">A PT260 é térmica monocromática: a prévia e o PNG preservam as cores do app, mas a impressão térmica sai em preto e branco. O DLabel fica responsável pela conexão Bluetooth com a impressora.</p>
       </div>
     </section>
     <section id="view-repasses" class="view">
@@ -442,7 +442,7 @@
   <script src="cloud-sync.js?v=6"></script>
   <script src="app-2.js"></script>
   <script src="app-3.js?v=13"></script>
-  <script src="labels-v17.js?v=1"></script>
+  <script src="labels-v17.js?v=2"></script>
   <script src="app-4.js?v=8"></script>
   <script src="catalog-admin.js?v=2"></script>
   <script src="analytics.js?v=3"></script>
