@@ -1,5 +1,5 @@
-const CACHE='tudo-tal-v18';
-const APP=['./','./index.html','./styles.css?v=13','./qr-v1.js?v=2','./app-1.js?v=12','./cloud-sync.js?v=6','./app-2.js','./app-3.js?v=13','./labels-v17.js?v=2','./app-4.js?v=8','./catalog-admin.js?v=2','./analytics.js?v=3','./auth-setup.js?v=4','./app-5.js?v=9','./catalogo.html','./catalogo.css?v=2','./catalogo.js?v=1','./manifest.webmanifest','./assets/logo.svg','./assets/icon.svg'];
+const CACHE='tudo-tal-v19';
+const APP=['./','./index.html','./styles.css?v=13','./qr-v1.js?v=2','./app-1.js?v=12','./cloud-sync.js?v=6','./app-2.js','./app-3.js?v=13','./labels-v17.js?v=3','./app-4.js?v=8','./catalog-admin.js?v=2','./analytics.js?v=3','./auth-setup.js?v=4','./app-5.js?v=9','./catalogo.html','./catalogo.css?v=2','./catalogo.js?v=1','./manifest.webmanifest','./assets/logo.svg','./assets/icon.svg'];
 
 self.addEventListener('install',e=>e.waitUntil(
   caches.open(CACHE).then(c=>c.addAll(APP)).then(()=>self.skipWaiting())
