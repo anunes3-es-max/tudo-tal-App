@@ -185,23 +185,24 @@
       }finally{window.__TDT_CLOUD_APPLYING__=false}
 
       for(const storeName of ["sales","cash"]){
-        let localRows=await dbAll(storeName);
         const remoteRows=await fetchRemote(storeName);
+        let rows;
 
         if(storeName==="sales"){
-          localRows=localRows.map(s=>{
-            const mapped=productMerge.idMap.get(s.productId);
-            return mapped&&mapped!==s.productId?{...s,productId:mapped}:s;
-          });
+          // Vendas são registradas de forma atômica no servidor e a nuvem é
+          // a fonte de verdade. Isso evita que um histórico apagado no servidor
+          // seja recriado por um cache antigo de outro aparelho.
+          rows=remoteRows;
+        }else{
+          const localRows=await dbAll(storeName);
+          rows=merge(storeName,localRows,remoteRows);
+          await upsertBatch(storeName,rows);
         }
-
-        const merged=merge(storeName,localRows,remoteRows);
-        await upsertBatch(storeName,merged);
 
         window.__TDT_CLOUD_APPLYING__=true;
         try{
           await dbClear(storeName);
-          for(const row of merged)await localPut(storeName,row);
+          for(const row of rows)await localPut(storeName,row);
         }finally{window.__TDT_CLOUD_APPLYING__=false}
       }
       status("☁️ Tudo sincronizado • "+new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}),"success");
