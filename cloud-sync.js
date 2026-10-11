@@ -154,7 +154,16 @@
   async function upsert(store,obj){
     if(!TABLES[store]||!client()||navigator.onLine===false)return false;
     try{
-      await upsertBatch(store,[obj]);
+      if(store==="sales"){
+        // Vendas novas só podem nascer pelos RPCs atômicos do PDV.
+        // Alterações em vendas já existentes (ex.: repasse pago) usam UPDATE,
+        // evitando que caches antigos recriem vendas apagadas.
+        const payload=toCloud(store,obj);
+        const {error}=await client().from(TABLES[store]).update(payload).eq("id",obj.id);
+        if(error)throw error;
+      }else{
+        await upsertBatch(store,[obj]);
+      }
       status("☁️ Sincronizado com a nuvem • "+new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}),"success");
       return true;
     }catch(err){
