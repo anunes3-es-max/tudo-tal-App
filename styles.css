@@ -1096,3 +1096,85 @@ body::before{opacity:.12;background-image:radial-gradient(rgba(120,87,232,.22) .
 .auth-status{color:#b8bac4;background:#20232d;border-color:#343844}
 
 .toast{background:#11131a;border:1px solid rgba(255,255,255,.08);box-shadow:0 16px 38px rgba(0,0,0,.28)}
+
+
+/* v17 — Etiquetas 5x5 + impressão móvel */
+.label-mode-tabs{
+  display:flex;gap:8px;overflow:auto;padding:2px 1px 12px;scrollbar-width:none
+}
+.label-mode-tabs::-webkit-scrollbar{display:none}
+.label-mode-tabs button{
+  min-height:40px;white-space:nowrap;padding:9px 14px;border:1px solid #dfe1e8;border-radius:999px;
+  color:#6c6f7b;background:#fff;font-size:11px;font-weight:850
+}
+.label-mode-tabs button.active{
+  color:#fff;border-color:transparent;background:linear-gradient(135deg,#1a1d27,#493a70);
+  box-shadow:0 8px 21px rgba(17,19,26,.15)
+}
+.label-workspace{overflow:hidden}
+.label-fixed-info{
+  display:grid;grid-template-columns:minmax(160px,.7fr) minmax(180px,1fr);gap:12px;margin:12px 0
+}
+.label-fixed-info>div,.label-fixed-info>label{
+  min-height:68px;padding:12px 14px;border:1px solid #e0e2e9;border-radius:15px;background:#f8f8fb
+}
+.label-fixed-info span{display:block;color:#777a87;font-size:9px;font-weight:900;letter-spacing:.07em;text-transform:uppercase}
+.label-fixed-info strong{display:block;margin-top:5px;color:#15161c;font:650 20px var(--serif)}
+.label-fixed-info label{color:#777a87;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.05em}
+.label-fixed-info .input{min-height:36px;margin-top:6px;padding:7px 10px}
+.label-mode-help{
+  display:flex;align-items:flex-start;gap:9px;margin:10px 0 2px;padding:11px 13px;border-left:4px solid #7857e8;
+  border-radius:0 13px 13px 0;background:linear-gradient(90deg,rgba(120,87,232,.08),rgba(233,75,124,.035))
+}
+.label-mode-help strong{color:#252731;font-size:11px;white-space:nowrap}
+.label-mode-help span{color:#747783;font-size:10px;line-height:1.5}
+.label-preview-stage{
+  min-height:260px;margin:16px 0;padding:24px;border:1px solid #e0e2e9;border-radius:22px;
+  background:
+    linear-gradient(45deg,#eceef3 25%,transparent 25%) 0 0/18px 18px,
+    linear-gradient(-45deg,#eceef3 25%,transparent 25%) 0 9px/18px 18px,
+    linear-gradient(45deg,transparent 75%,#eceef3 75%) 9px -9px/18px 18px,
+    linear-gradient(-45deg,transparent 75%,#eceef3 75%) -9px 0/18px 18px,
+    #f7f8fb
+}
+.label-square{
+  width:50mm!important;height:50mm!important;flex:0 0 50mm;overflow:hidden;
+  background:#fff;border:0;border-radius:0;box-shadow:0 16px 44px rgba(17,19,26,.18)
+}
+.label-square svg{display:block;width:100%;height:100%}
+.round-label-preview{border-radius:50%}
+.label-print-actions{display:grid;grid-template-columns:1.1fr 1.2fr .8fr;gap:9px;margin-top:12px}
+.label-print-actions>*{min-width:0}
+.pt260-button{position:relative;color:#fff;background:linear-gradient(135deg,#20232d,#493a70);border-color:transparent}
+.pt260-button span{
+  display:inline-flex;margin-right:5px;padding:3px 6px;border-radius:7px;background:rgba(255,255,255,.12);
+  font-size:9px;letter-spacing:.07em
+}
+.printer-tech-note{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:14px;padding:14px 15px;
+  border:1px solid #d8d9e4;border-radius:17px;background:linear-gradient(135deg,#f7f7fb,#f1eff9)
+}
+.printer-tech-note strong{display:block;color:#242630;font-size:12px}
+.printer-tech-note p{margin:4px 0 0;color:#777a87;font-size:10px;line-height:1.5}
+.printer-chip{
+  flex:0 0 auto;padding:7px 9px;border-radius:999px;color:#fff;background:linear-gradient(135deg,#e94b7c,#7857e8);
+  font-size:8px;font-weight:900;letter-spacing:.05em;white-space:nowrap
+}
+.thermal-note{margin:11px 2px 0}
+@media(max-width:650px){
+  .label-fixed-info{grid-template-columns:1fr 1fr}
+  .label-mode-help{flex-direction:column;gap:3px}
+  .label-print-actions{grid-template-columns:1fr}
+  .printer-tech-note{align-items:flex-start;flex-direction:column}
+  .label-preview-stage{padding:17px 10px}
+}
+@media(max-width:380px){
+  .label-fixed-info{grid-template-columns:1fr}
+}
+@media print{
+  #labelPreview{
+    position:fixed!important;left:0!important;top:0!important;width:50mm!important;height:50mm!important;
+    border-radius:0!important;overflow:hidden!important
+  }
+  #labelPreview svg{width:50mm!important;height:50mm!important}
+}
