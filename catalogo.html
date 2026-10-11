@@ -2,113 +2,14 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#11131a">
-  <title>Catálogo Tudo & Tal</title>
-  <link rel="icon" href="assets/icon.svg">
-  <link rel="stylesheet" href="catalogo.css?v=3">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="refresh" content="0; url=https://tudoetalstore.github.io/">
+  <title>Tudo & Tal</title>
+  <link rel="canonical" href="https://tudoetalstore.github.io/">
 </head>
 <body>
-  <header class="catalog-top">
-    <a class="catalog-brand" href="./catalogo.html" aria-label="Tudo & Tal">
-      <img src="assets/icon.svg" alt="">
-      <div><strong>Tudo & Tal</strong><span>Moda • Beleza • Segunda vida</span></div>
-    </a>
-    <button id="cartButton" class="cart-button" type="button" aria-label="Abrir sacola">
-      <svg class="bag-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M5.5 8h13l1 12h-15l1-12Z"/>
-        <path d="M9 9V6.5a3 3 0 0 1 6 0V9"/>
-      </svg>
-      <span>Minha sacola</span><b id="cartCount">0</b>
-    </button>
-  </header>
-
-  <main>
-    <section class="catalog-hero">
-      <div class="hero-copy">
-        <p class="eyebrow">CATÁLOGO ONLINE</p>
-        <h1>Achados especiais, escolhidos para você.</h1>
-        <p>Veja o que está disponível agora na Tudo & Tal, monte sua sacola e finalize o pedido direto pelo WhatsApp.</p>
-      </div>
-      <div class="hero-seal"><span>♡</span><b>peças & beleza</b><small>com nova história</small></div>
-    </section>
-
-    <section class="catalog-tools">
-      <div class="search-wrap">
-        <span>⌕</span>
-        <input id="catalogSearch" type="search" placeholder="Buscar produto, marca ou categoria">
-      </div>
-      <div id="categoryChips" class="category-chips"></div>
-    </section>
-
-    <section class="catalog-section">
-      <div class="catalog-heading">
-        <div><p class="eyebrow">DISPONÍVEIS AGORA</p><h2>Catálogo Tudo & Tal</h2></div>
-        <span id="productCount">Carregando...</span>
-      </div>
-      <div id="catalogGrid" class="catalog-grid"></div>
-    </section>
-  </main>
-
-  <div id="drawerBackdrop" class="backdrop hidden"></div>
-  <aside id="cartDrawer" class="cart-drawer" aria-hidden="true">
-    <div class="drawer-head">
-      <div><p class="eyebrow">SUA SELEÇÃO</p><h2>Minha sacola</h2></div>
-      <button id="closeCart" class="icon-btn" type="button">×</button>
-    </div>
-    <div id="cartItems" class="cart-items"></div>
-    <div class="cart-footer">
-      <div class="cart-total"><span>Total</span><strong id="cartTotal">R$ 0,00</strong></div>
-      <button id="checkoutButton" class="primary wide" type="button">Finalizar pedido</button>
-      <p>Ao finalizar, o pedido entra automaticamente na loja e seus itens ficam reservados por 1 hora.</p>
-    </div>
-  </aside>
-
-  <div id="checkoutModal" class="modal-backdrop hidden">
-    <section class="checkout-card" role="dialog" aria-modal="true" aria-labelledby="checkoutTitle">
-      <button id="closeCheckout" class="icon-btn modal-close" type="button">×</button>
-      <p class="eyebrow">QUASE LÁ</p>
-      <h2 id="checkoutTitle">Dados para o pedido</h2>
-      <form id="checkoutForm">
-        <label>Seu nome
-          <input id="customerName" required maxlength="80" placeholder="Como podemos te chamar?">
-        </label>
-        <label>WhatsApp com DDD
-          <input id="customerPhone" required inputmode="tel" maxlength="20" placeholder="(99) 99999-9999">
-        </label>
-        <label>Como prefere receber?
-          <select id="fulfillment">
-            <option>Combinar pelo WhatsApp</option>
-            <option>Retirada na loja</option>
-            <option>Combinar entrega pelo WhatsApp</option>
-          </select>
-        </label>
-        <label>Observação <small>(opcional)</small>
-          <textarea id="orderNotes" maxlength="500" rows="3" placeholder="Ex.: separar para presente, preferência de horário..."></textarea>
-        </label>
-        <div class="checkout-summary">
-          <span>Total do pedido</span><strong id="checkoutTotal">R$ 0,00</strong>
-        </div>
-        <button class="primary wide" id="placeOrderButton" type="submit">Criar pedido e ir para o WhatsApp</button>
-        <p class="privacy-note">Seus dados são usados somente para atender este pedido.</p>
-      </form>
-    </section>
-  </div>
-
-  <div id="successModal" class="modal-backdrop hidden">
-    <section class="checkout-card success-card" role="dialog" aria-modal="true">
-      <div class="success-icon">✓</div>
-      <p class="eyebrow">PEDIDO RECEBIDO</p>
-      <h2 id="successTitle">Seu pedido entrou na Tudo & Tal.</h2>
-      <p id="successText"></p>
-      <a id="whatsappLink" class="primary wide link-button hidden" href="#" rel="noopener">Continuar no WhatsApp</a>
-      <button id="backCatalog" class="secondary wide" type="button">Voltar ao catálogo</button>
-    </section>
-  </div>
-
-  <div id="catalogToast" class="toast"></div>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="catalogo.js?v=2"></script>
+  <p>O catálogo da Tudo & Tal mudou de endereço.</p>
+  <p><a href="https://tudoetalstore.github.io/">Abrir catálogo</a></p>
+  <script>location.replace("https://tudoetalstore.github.io/");</script>
 </body>
 </html>
