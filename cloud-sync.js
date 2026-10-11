@@ -154,7 +154,13 @@
   async function upsert(store,obj){
     if(!TABLES[store]||!client()||navigator.onLine===false)return false;
     try{
-      if(store==="sales"){
+      if(store==="products"){
+        // Cadastro/edição de produto passa por RPC administrativo.
+        // Assim quantidade de estoque só muda por operações explícitas,
+        // nunca por um cache antigo tentando sobrescrever a nuvem.
+        const {error}=await client().rpc("save_product",{p_product:productToCloud(obj)});
+        if(error)throw error;
+      }else if(store==="sales"){
         // Vendas novas só podem nascer pelos RPCs atômicos do PDV.
         // Alterações em vendas já existentes (ex.: repasse pago) usam UPDATE,
         // evitando que caches antigos recriem vendas apagadas.
@@ -179,13 +185,10 @@
     syncing=true;
     status("☁️ Sincronizando dados...","info");
     try{
-      const [localProducts,remoteProducts]=await Promise.all([dbAll("products"),fetchRemote("products")]);
-      const productMerge=mergeProducts(localProducts,remoteProducts);
-      await upsertBatch("products",productMerge.rows);
-
-      // Depois de enviar eventuais alterações de cadastro, baixa novamente
-      // o estoque do servidor e usa essa cópia como verdade local.
-      // Assim o painel nunca fica preso em quantidade antiga do IndexedDB.
+      // A nuvem é a fonte de verdade para estoque, vendas e caixa.
+      // Salvamentos novos são enviados no momento da ação; a sincronização
+      // apenas baixa o estado oficial, impedindo que caches antigos ressuscitem
+      // vendas ou quantidades já alteradas em outro aparelho.
       const authoritativeProducts=await fetchRemote("products");
       window.__TDT_CLOUD_APPLYING__=true;
       try{
@@ -194,20 +197,7 @@
       }finally{window.__TDT_CLOUD_APPLYING__=false}
 
       for(const storeName of ["sales","cash"]){
-        const remoteRows=await fetchRemote(storeName);
-        let rows;
-
-        if(storeName==="sales"){
-          // Vendas são registradas de forma atômica no servidor e a nuvem é
-          // a fonte de verdade. Isso evita que um histórico apagado no servidor
-          // seja recriado por um cache antigo de outro aparelho.
-          rows=remoteRows;
-        }else{
-          const localRows=await dbAll(storeName);
-          rows=merge(storeName,localRows,remoteRows);
-          await upsertBatch(storeName,rows);
-        }
-
+        const rows=await fetchRemote(storeName);
         window.__TDT_CLOUD_APPLYING__=true;
         try{
           await dbClear(storeName);
