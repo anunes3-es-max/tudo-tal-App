@@ -249,55 +249,6 @@
     }).join("");
   }
 
-  async function renderVipReceivables(){
-    const listEl=$("#vipReceivables");
-    const summaryEl=$("#vipReceivableSummary");
-    if(!listEl||!summaryEl)return;
-    if(!window.tudoTalCloud?.fetchReceivables){
-      summaryEl.innerHTML='<span class="analytics-sub">Atualize o app para carregar o Crediário VIP.</span>';
-      return;
-    }
-    try{
-      const rows=await window.tudoTalCloud.fetchReceivables();
-      const pending=rows.filter(r=>r.status==="Pendente");
-      const paid=rows.filter(r=>r.status==="Pago");
-      const pendingTotal=pending.reduce((s,r)=>s+Number(r.amount||0),0);
-      const today=new Date();today.setHours(0,0,0,0);
-      const overdue=pending.filter(r=>Date.parse(r.due_date+"T00:00:00")<today.getTime());
-      summaryEl.innerHTML='<div class="receivable-summary-card"><span>A receber</span><strong>'+money(pendingTotal)+'</strong><small>'+pending.length+' parcela(s) pendente(s) • '+overdue.length+' vencida(s)</small></div><div class="receivable-summary-card"><span>Parcelas recebidas</span><strong>'+paid.length+'</strong><small>Histórico do Crediário VIP</small></div>';
-
-      if(!pending.length){
-        listEl.innerHTML='<div class="empty">Nenhuma parcela pendente no Crediário VIP.</div>';
-        return;
-      }
-
-      listEl.innerHTML=pending.map(r=>{
-        const sale=state.sales.find(s=>s.id===r.sale_id);
-        const due=new Date(r.due_date+"T00:00:00");
-        const isOverdue=due.getTime()<today.getTime();
-        return '<div class="receivable-row '+(isOverdue?'overdue':'')+'"><div><strong>'+esc(sale?.productName||"Venda VIP")+'</strong><div class="meta">Parcela '+r.installment_number+'/'+r.installment_count+' • vence '+due.toLocaleDateString("pt-BR")+(isOverdue?' • VENCIDA':'')+'</div><div class="meta">'+esc(sale?.owner||"")+'</div></div><div class="receivable-actions"><strong>'+money(r.amount)+'</strong><button class="mini" onclick="markVipInstallmentPaid(\''+r.id+'\')">Receber parcela</button></div></div>';
-      }).join("");
-    }catch(err){
-      console.error("Crediário VIP",err);
-      summaryEl.innerHTML='<span class="analytics-sub">Não consegui carregar o Crediário VIP agora.</span>';
-      listEl.innerHTML='<div class="empty">Tente sincronizar novamente.</div>';
-    }
-  }
-
-  window.markVipInstallmentPaid=async function(id){
-    if(!confirm("Confirmar que esta parcela do Crediário VIP foi recebida?"))return;
-    try{
-      await window.tudoTalCloud.markReceivablePaid(id);
-      await loadState();
-      toast("Parcela recebida e atualizada na nuvem.");
-      renderMarketInsights();
-      renderVipReceivables();
-    }catch(err){
-      console.error("Receber parcela VIP",err);
-      toast("Não consegui marcar a parcela como recebida.");
-    }
-  };
-
   function bindControls(){
     $$(".analytics-period button").forEach(btn=>{
       if(btn.dataset.bound)return;
@@ -318,6 +269,7 @@
     renderTrendChart(buckets);
     renderMarketInsights();
     renderInventoryAdvice();
+    window.renderFlexibleVipReceivables?.();
     const note=$("#analyticsPeriodNote");
     if(note)note.textContent={
       day:"Últimos 14 dias",
@@ -327,3 +279,4 @@
     }[currentPeriod]||"";
   };
 })();
+

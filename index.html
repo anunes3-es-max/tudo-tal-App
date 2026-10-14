@@ -10,6 +10,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/icon.svg">
   <link rel="stylesheet" href="styles.css?v=16">
+  <link rel="stylesheet" href="vip-credit.css?v=1">
   <title>Tudo & Tal</title>
 </head>
 <body class="auth-locked">
@@ -352,7 +353,7 @@
         </div>
         <div class="panel analytics-wide">
           <h2>Crediário VIP — parcelas a receber</h2>
-          <p class="hint">Acompanhe vencimentos e marque cada parcela quando o pagamento entrar.</p>
+          <p class="hint">Acompanhe entradas, parcelas com valores livres e pagamentos parciais.</p>
           <div id="vipReceivableSummary" class="receivable-summary"></div>
           <div id="vipReceivables"></div>
         </div>
@@ -459,17 +460,30 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="auth-setup.js?v=9"></script>
+  <dialog id="vipReceiptDialog" class="vip-dialog" aria-labelledby="vipReceiptTitle">
+    <form id="vipReceiptForm">
+      <h2 id="vipReceiptTitle">Registrar recebimento</h2>
+      <strong id="vipReceiptCustomer"></strong>
+      <p id="vipReceiptBalance" class="hint"></p>
+      <label>Valor recebido agora (R$)<input id="vipReceiptAmount" class="input" type="number" min="0.01" step="0.01" required></label>
+      <label>Forma de recebimento<select id="vipReceiptMethod" class="input"><option>Pix</option><option>Dinheiro</option><option>Transferência</option><option>Outro</option></select></label>
+      <p class="hint">Pode receber apenas uma parte. O restante continua pendente.</p>
+      <p id="vipReceiptError" class="vip-error" role="alert"></p>
+      <div class="vip-dialog-actions"><button id="vipReceiptCancel" class="ghost" type="button" onclick="closeVipReceipt()">Cancelar</button><button id="vipReceiptSave" class="primary" type="submit">Confirmar recebimento</button></div>
+    </form>
+  </dialog>
   <script src="qr-v1.js?v=2"></script>
-  <script src="app-1.js?v=14"></script>
-  <script src="cloud-sync.js?v=14"></script>
+  <script src="app-1.js?v=15"></script>
+  <script src="cloud-sync.js?v=15"></script>
   <script src="app-2.js?v=4"></script>
   <script src="app-3.js?v=14"></script>
-<script src="pdv-cart-v23.js?v=1"></script>
+  <script src="vip-credit.js?v=1"></script>
+  <script src="pdv-cart-v23.js?v=2"></script>
   <script src="labels-v17.js?v=5"></script>
   <script src="app-4.js?v=10"></script>
   <script src="catalog-admin.js?v=2"></script>
   <script src="waitlist-admin.js?v=1"></script>
-  <script src="analytics.js?v=3"></script>
+  <script src="analytics.js?v=4"></script>
   <script src="app-5.js?v=12"></script>
 </body>
 </html>

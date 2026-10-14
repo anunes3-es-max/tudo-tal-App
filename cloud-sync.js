@@ -60,7 +60,7 @@
       repasse:Number(r.repasse||0),mode:r.mode,owner:r.owner_name||"Tudo e Tal",
       ownerPhone:r.owner_phone||"",payment:r.payment||"",paymentProvider:r.payment_provider||"",cardBrand:r.card_brand||"",receivingPlan:r.receiving_plan||"",rateTier:r.rate_tier||"",processingFeeRate:Number(r.processing_fee_rate||0),processingFeeAmount:Number(r.processing_fee_amount||0),netAmount:Number(r.net_amount??r.total??0),installments:Number(r.installments||1),firstDueDate:r.first_due_date||null,channel:r.channel||"",
       customerType:r.customer_type||"nao_informado",purchaseProfile:r.purchase_profile||"nao_informado",
-      receivedStatus:r.received_status||"Recebido",repasseStatus:r.repasse_status||"Não aplicável",
+      receivedAmount:Number(r.received_amount||0),customerName:r.customer_name||"",customerPhone:r.customer_phone||"",receivedStatus:r.received_status||"Recebido",repasseStatus:r.repasse_status||"Não aplicável",
       repassePaidAt:r.repasse_paid_at||null,costTotal:Number(r.cost_total||0),
       result:Number(r.result||0),updatedAt:r.updated_at
     };
@@ -310,11 +310,11 @@
     return {status:data.status||"registered",product:localProduct,sale:localSale};
   }
 
-  async function registerSaleCartAtomic({cartId,items,discountPercent=0,payment,installments,firstDueDate,cardBrand,receivingPlan,rateTier,channel,customerType,purchaseProfile}){
+  async function registerSaleCartAtomic({cartId,items,discountPercent=0,payment,installments,firstDueDate,cardBrand,receivingPlan,rateTier,channel,customerType,purchaseProfile,vip}){
     const c=client();
     if(!c)throw new Error("Nuvem indisponível nesta sessão.");
     if(navigator.onLine===false)throw new Error("A venda segura precisa de internet para confirmar o estoque.");
-    const {data,error}=await c.rpc("register_sale_cart_atomic",{
+    const params={
       p_cart_id:cartId,
       p_items:(items||[]).map(x=>({product_id:x.productId,qty:Number(x.qty)})),
       p_discount_percent:Number(discountPercent||0),
@@ -327,7 +327,11 @@
       p_card_brand:cardBrand||null,
       p_receiving_plan:receivingPlan||"one_day",
       p_rate_tier:rateTier||"up_to_20"
-    });
+    };
+    if(payment==="Crediário VIP"&&!vip)throw new Error("Confira o acordo do Crediário VIP.");
+    const {data,error}=payment==="Crediário VIP"
+      ?await c.rpc("register_vip_sale_cart",{p_cart_id:cartId,p_items:params.p_items,p_discount_percent:params.p_discount_percent,p_channel:params.p_channel,p_customer_type:params.p_customer_type,p_purchase_profile:params.p_purchase_profile,p_plan:vip.plan,p_customer_name:vip.customerName,p_customer_phone:vip.customerPhone})
+      :await c.rpc("register_sale_cart_atomic",params);
     if(error)throw error;
     await syncAll();
     await loadState();
@@ -360,6 +364,18 @@
     return data||[];
   }
 
+  async function fetchVipPayments(){
+    const c=client();if(!c)throw new Error("Nuvem indisponível nesta sessão.");
+    const {data,error}=await c.from("receivable_payments").select("*").order("received_at",{ascending:false});
+    if(error)throw error;return data||[];
+  }
+  async function recordVipPayment({id,amount,requestId,method}){
+    const c=client();if(!c)throw new Error("Nuvem indisponível nesta sessão.");
+    if(navigator.onLine===false)throw new Error("Conecte à internet para registrar o recebimento.");
+    const {data,error}=await c.rpc("record_vip_payment",{p_receivable_id:id,p_amount:amount,p_request_id:requestId,p_payment_method:method});
+    if(error)throw error;return data;
+  }
+
   async function markReceivablePaid(receivableId){
     const c=client();
     if(!c)throw new Error("Nuvem indisponível nesta sessão.");
@@ -383,5 +399,6 @@
     return ok;
   }
 
-  window.tudoTalCloud={syncAll,syncAndRefresh,upsert,saveProductAdmin,saveCashAdmin,replaceAllFromLocal,registerSaleAtomic,registerSaleCartAtomic,getInfinityPayRate,fetchReceivables,markReceivablePaid,status,get lastStatus(){return lastStatus}};
+  window.tudoTalCloud={syncAll,syncAndRefresh,upsert,saveProductAdmin,saveCashAdmin,replaceAllFromLocal,registerSaleAtomic,registerSaleCartAtomic,getInfinityPayRate,fetchReceivables,fetchVipPayments,recordVipPayment,markReceivablePaid,status,get lastStatus(){return lastStatus}};
 })();
+
