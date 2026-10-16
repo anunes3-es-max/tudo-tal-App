@@ -30,7 +30,7 @@ window.__qaInterests=[
 window.__qaClient={
   rpc:async(name,params)=>{
     window.__qaCalls.push({name,params});
-    if(name==='get_catalog_products')return {data:JSON.parse(JSON.stringify(window.__qaProducts)),error:null};
+    if(name==='get_catalog_products'||name==='get_catalog_products_v2')return {data:JSON.parse(JSON.stringify(window.__qaProducts)),error:null};
     if(name==='get_catalog_config')return {data:{store_name:'Tudo & Tal',reservation_minutes:60,whatsapp_number:'5511999990999'},error:null};
     if(name==='create_catalog_interest'){
       const p=window.__qaProducts.find(x=>x.id===params.p_product_id);

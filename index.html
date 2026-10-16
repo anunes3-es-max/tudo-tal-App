@@ -132,6 +132,23 @@
           </label>
         </div>
         <div class="two">
+          <label>Área do catálogo
+            <select id="productCatalogSection" class="input"><option value="loja">Loja (beleza e demais produtos)</option><option value="vestuario">Vestuário &amp; Brechó</option></select>
+          </label>
+          <label id="productOfferLabel" class="hidden">Disponibilizar como
+            <select id="productOffer" class="input"><option value="sale">À venda</option><option value="donation">Doação — retirada grátis</option></select>
+          </label>
+        </div>
+        <div id="productClothingFields" class="two hidden">
+          <label>Público
+            <select id="productAgeGroup" class="input"><option value="">Selecione</option><option value="adulto">Adulto</option><option value="infantil">Infantil</option></select>
+          </label>
+          <label>Modelo
+            <select id="productGender" class="input"><option value="">Selecione</option><option value="feminino">Feminino</option><option value="masculino">Masculino</option><option value="unissex">Unissex</option></select>
+          </label>
+        </div>
+        <p id="productDonationHint" class="hint hidden">Doação gratuita de estoque próprio. O cliente reserva por 24 horas e combina a retirada. Confirme a entrega em Pedidos para baixar o estoque, sem gerar venda ou repasse.</p>
+        <div class="two">
           <label>Tamanho / volume
             <input id="productSize" class="input" placeholder="M, 38, 230g...">
           </label>
@@ -165,7 +182,7 @@
             <input id="productPrice" required class="input" type="number" min="0.01" step="0.01">
           </label>
           <label>Quantidade*
-            <input id="productQty" required class="input" type="number" min="1" step="1" value="1">
+            <input id="productQty" required class="input" type="number" min="0" step="1" value="1">
           </label>
           <label>Custo unitário (R$)
             <input id="productCost" class="input" type="number" min="0" step="0.01">
@@ -180,7 +197,8 @@
             <span>De 0% a 50%. O catálogo mostra o preço cheio e o preço promocional automaticamente.</span>
           </div>
         </div>
-        <button class="primary wide" type="submit">Salvar produto + gerar SKU/QR</button>
+        <p class="hint">Quantidade 0 mantém o produto visível como esgotado no catálogo.</p>
+        <button id="saveProductButton" class="primary wide" type="submit">Cadastrar produto</button>
       </form>
     </section>
 
@@ -474,17 +492,17 @@
   </dialog>
   <script src="qr-v1.js?v=2"></script>
   <script src="app-1.js?v=15"></script>
-  <script src="cloud-sync.js?v=15"></script>
-  <script src="app-2.js?v=4"></script>
+  <script src="cloud-sync.js?v=16"></script>
+  <script src="app-2.js?v=5"></script>
   <script src="app-3.js?v=14"></script>
   <script src="vip-credit.js?v=1"></script>
-  <script src="pdv-cart-v23.js?v=2"></script>
+  <script src="pdv-cart-v23.js?v=3"></script>
   <script src="labels-v17.js?v=5"></script>
   <script src="app-4.js?v=10"></script>
-  <script src="catalog-admin.js?v=2"></script>
+  <script src="catalog-admin.js?v=3"></script>
   <script src="waitlist-admin.js?v=1"></script>
   <script src="analytics.js?v=4"></script>
-  <script src="app-5.js?v=12"></script>
+  <script src="app-5.js?v=13"></script>
 </body>
 </html>
 

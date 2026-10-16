@@ -21,6 +21,7 @@
   function productToCloud(o){
     return {
       id:o.id,sku:o.sku,name:o.name,category:o.category,brand:o.brand||null,size:o.size||null,
+      catalog_section:o.catalogSection,age_group:o.ageGroup||null,gender:o.gender||null,is_donation:o.isDonation,
       color:o.color||null,condition:o.condition||null,mode:o.mode,partner_id:null,
       owner_name:o.owner||"Tudo e Tal",owner_phone:o.ownerPhone||null,
       price:Number(o.price||0),discount_percent:Number(o.discountPercent||0),qty:Number(o.qty||0),expected_qty:o.expectedQty==null?null:Number(o.expectedQty),cost:Number(o.cost||0),
@@ -32,6 +33,7 @@
   function productFromCloud(r){
     return {
       id:r.id,sku:r.sku,name:r.name,category:r.category,brand:r.brand||"",size:r.size||"",
+      catalogSection:r.catalog_section||"loja",ageGroup:r.age_group||"",gender:r.gender||"",isDonation:r.is_donation===true,
       color:r.color||"",condition:r.condition||"",mode:r.mode,owner:r.owner_name||"Tudo e Tal",
       ownerPhone:r.owner_phone||"",price:Number(r.price||0),discountPercent:Number(r.discount_percent||0),qty:Number(r.qty||0),
       cost:Number(r.cost||0),stockType:r.stock_type||"",photo:r.photo_url||"",

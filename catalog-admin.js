@@ -6,7 +6,7 @@
   let config={whatsapp_number:"",reservation_minutes:60};
 
   const c=()=>window.tudoTalSupabase;
-  const statuses=["Todos","Novo","Em atendimento","Aguardando pagamento","Pago","Concluído","Expirado"];
+  const statuses=["Todos","Doações","Novo","Em atendimento","Aguardando pagamento","Pago","Concluído","Expirado"];
   const activeStatus=new Set(["Novo","Em atendimento","Aguardando pagamento","Pago"]);
   const phoneForWa=v=>{const d=String(v||"").replace(/\D/g,"");return d.length<=11?"55"+d:d};
   const fmtDate=v=>v?new Date(v).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):"";
@@ -45,13 +45,14 @@
   function statusClass(s){return {"Novo":"new","Em atendimento":"service","Aguardando pagamento":"wait","Pago":"paid","Concluído":"done","Cancelado":"cancel","Expirado":"expired"}[s]||""}
   function renderOrders(){
     const el=document.querySelector("#catalogOrdersList");if(!el)return;
-    const rows=filter==="Todos"?orders:orders.filter(o=>o.status===filter);
+    const rows=filter==="Todos"?orders:filter==="Doações"?orders.filter(o=>o.order_type==="donation"):orders.filter(o=>o.status===filter);
     el.innerHTML=rows.length?rows.map(o=>{
-      const items=(o.catalog_order_items||[]).map(i=>'<div class="order-item"><span>'+i.qty+'× '+esc(i.product_name)+'</span><strong>'+money(i.total)+'</strong></div>').join("");
+      const donation=o.order_type==="donation";
+      const items=(o.catalog_order_items||[]).map(i=>'<div class="order-item"><span>'+i.qty+'× '+esc(i.product_name)+'</span><strong>'+(donation?'Grátis':money(i.total))+'</strong></div>').join("");
       const exp=activeStatus.has(o.status)&&o.status!=="Pago"?'<span>Reserva até '+fmtDate(o.reservation_expires_at)+'</span>':"";
       const wa="https://wa.me/"+phoneForWa(o.customer_phone)+"?text="+encodeURIComponent("Olá "+o.customer_name+"! Estou entrando em contato sobre seu pedido "+o.order_number+" da Tudo & Tal.");
       const action=o.status!=="Concluído"&&o.status!=="Cancelado"&&o.status!=="Expirado"
-        ?'<button class="primary mini-order" data-finalize="'+o.id+'">Registrar venda</button>'
+        ?'<button class="primary mini-order" data-finalize="'+o.id+'">'+(donation?'Confirmar retirada grátis':'Registrar venda')+'</button>'
         :"";
       const statusOptions=[
         ["Novo","Novo"],
@@ -59,11 +60,11 @@
         ["Aguardando pagamento","Aguardando pagamento"],
         ["Pago","Pago"],
         ["Cancelado","Cancelar e apagar"]
-      ].map(([value,label])=>'<option value="'+value+'" '+(o.status===value?"selected":"")+'>'+label+'</option>').join("");
+      ].filter(([value])=>!donation||!["Pago","Aguardando pagamento"].includes(value)).map(([value,label])=>'<option value="'+value+'" '+(o.status===value?"selected":"")+'>'+label+'</option>').join("");
       const selector=o.status!=="Concluído"&&o.status!=="Expirado"
         ?'<div class="order-status-edit"><select class="input" data-status-select="'+o.id+'">'+statusOptions+'</select><button class="secondary mini-order" data-save-status="'+o.id+'">Salvar status</button></div>'
         :"";
-      return '<article class="order-card '+statusClass(o.status)+'"><div class="order-head"><div><div class="order-number">'+esc(o.order_number)+'</div><h3>'+esc(o.customer_name)+'</h3><div class="meta">'+fmtDate(o.created_at)+' • '+esc(o.customer_phone)+' • '+esc(o.fulfillment)+'</div></div><span class="order-status '+statusClass(o.status)+'">'+esc(o.status)+'</span></div><div class="order-items">'+items+'</div><div class="order-total"><span>Total</span><strong>'+money(orderTotal(o))+'</strong></div>'+(o.notes?'<div class="order-note">“'+esc(o.notes)+'”</div>':"")+'<div class="order-reservation">'+exp+'</div>'+selector+'<div class="order-actions"><a class="secondary mini-order" href="'+wa+'" target="_blank" rel="noopener">WhatsApp</a>'+action+'</div></article>';
+      return '<article class="order-card '+statusClass(o.status)+'"><div class="order-head"><div><div class="order-number">'+(donation?'DOAÇÃO · ':'')+esc(o.order_number)+'</div><h3>'+esc(o.customer_name)+'</h3><div class="meta">'+fmtDate(o.created_at)+' • '+esc(o.customer_phone)+' • '+esc(o.fulfillment)+'</div></div><span class="order-status '+statusClass(o.status)+'">'+esc(o.status)+'</span></div><div class="order-items">'+items+'</div><div class="order-total"><span>Total</span><strong>'+(donation?'Grátis · retirada na loja':money(orderTotal(o)))+'</strong></div>'+(o.notes?'<div class="order-note">“'+esc(o.notes)+'”</div>':"")+'<div class="order-reservation">'+exp+'</div>'+selector+'<div class="order-actions"><a class="secondary mini-order" href="'+wa+'" target="_blank" rel="noopener">WhatsApp</a>'+action+'</div></article>';
     }).join(""):'<div class="empty">Nenhum pedido neste status.</div>';
     el.querySelectorAll("[data-save-status]").forEach(b=>b.onclick=()=>saveStatus(b.dataset.saveStatus));
     el.querySelectorAll("[data-finalize]").forEach(b=>b.onclick=()=>openFinalize(b.dataset.finalize));
@@ -115,9 +116,23 @@
   }
   function openFinalize(id){
     ensureModal();const o=orders.find(x=>x.id===id);if(!o)return;
+    if(o.order_type==="donation"){completeDonation(o);return}
     document.querySelector("#finalizeOrderId").value=id;
     document.querySelector("#finalizeOrderLabel").textContent=o.order_number+" • "+o.customer_name+" • "+money(o.subtotal);
     document.querySelector("#orderFinalizeModal").classList.remove("hidden");renderPaymentExtra();
+  }
+  const completingDonations=new Set();
+  async function completeDonation(order){
+    if(completingDonations.has(order.id))return;
+    if(!confirm("Confirmar que "+order.customer_name+" retirou a doação "+order.order_number+"? A peça será baixada do estoque, sem cobrança."))return;
+    completingDonations.add(order.id);
+    const button=document.querySelector('[data-finalize="'+order.id+'"]');if(button){button.disabled=true;button.textContent="Confirmando retirada..."}
+    try{
+      const {error}=await c().rpc("complete_catalog_donation",{p_order_id:order.id});if(error)throw error;
+      if(window.tudoTalCloud?.syncAndRefresh)await window.tudoTalCloud.syncAndRefresh();
+      await fetchOrders(true);toast("Retirada grátis confirmada. Estoque atualizado.");
+    }catch(err){console.error(err);toast("Não consegui confirmar: "+String(err?.message||"erro").slice(0,110))}
+    finally{completingDonations.delete(order.id);if(button){button.disabled=false;button.textContent="Confirmar retirada grátis"}}
   }
   async function confirmOrder(e){
     e.preventDefault();
@@ -179,3 +194,4 @@
     document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")fetchOrders(true)});
   };
 })();
+
