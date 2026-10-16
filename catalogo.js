@@ -2,7 +2,7 @@
 const SUPABASE_URL="https://iugryzipeqbgoplwqdqn.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_PbXYTHU7fS3VlkcrnvkwLQ_5A5JHwIR";
 const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
-const S={products:[],section:"loja",offer:"sale",age:"",gender:"",size:"",category:"Todos",query:"",cart:new Map(),config:{store_name:"Tudo & Tal",whatsapp_number:"",reservation_minutes:60}};
+const S={products:[],section:"all",offer:"all",condition:"",age:"",gender:"",size:"",category:"Todos",query:"",cart:new Map(),config:{store_name:"Tudo & Tal",whatsapp_number:"",reservation_minutes:60}};
 const donation={productId:null,posting:false,trigger:null};
 const interest={productId:null,posting:false,trigger:null};
 const $=s=>document.querySelector(s);
@@ -15,41 +15,51 @@ function cartLines(){return [...S.cart.entries()].map(([id,qty])=>({p:productByI
 function cartTotal(){return cartLines().reduce((s,x)=>s+Number(x.p.price)*x.qty,0)}
 function cartCount(){return cartLines().reduce((s,x)=>s+x.qty,0)}
 function safePhoto(p){return p.photo_url||"assets/icon.svg"}
-function clothingProduct(p){return p.catalog_section==="vestuario"||(!p.catalog_section&&["Moda Adulto","Moda Infantil","Calçados","Bolsas"].includes(p.category))}
-function sectionProducts(){return S.products.filter(p=>S.section==="vestuario"?clothingProduct(p)&&(!!p.is_donation===(S.offer==="donation")):!clothingProduct(p)&&!p.is_donation)}
-function sizeKey(value){return String(value||"").trim().toLocaleUpperCase("pt-BR")}
+function clothingProduct(p){return TudoTalGroups.groupId(p)==="vestuario"}
+function sectionProducts(){return S.products.filter(p=>S.section==="all"||
+  (S.section==="vestuario"?clothingProduct(p)&&(S.offer==="all"||TudoTalGroups.isDonation(p)===(S.offer==="donation")):!clothingProduct(p)))}
+function sizeKey(value){return TudoTalGroups.sizeKey(value)}
 function filteredProducts(){
-  const q=S.query.trim().toLocaleLowerCase("pt-BR");
-  return sectionProducts().filter(p=>(S.category==="Todos"||p.category===S.category)
-    &&(S.section!=="vestuario"||((!S.age||p.age_group===S.age)&&(!S.gender||p.gender===S.gender)&&(!S.size||sizeKey(p.size)===S.size)))
-    &&(!q||[p.name,p.brand,p.category,p.sku,p.size].join(" ").toLocaleLowerCase("pt-BR").includes(q)));
+  const q=TudoTalGroups.normalize(S.query);
+  return sectionProducts().filter(p=>(S.category==="Todos"||TudoTalGroups.groupId(p)===S.category)
+    &&(S.section!=="vestuario"||TudoTalGroups.matchesClothing(p,S))
+    &&(!q||TudoTalGroups.normalize([p.name,p.brand,p.category,TudoTalGroups.group(p).label,p.sku,p.size].join(" ")).includes(q)));
 }
 function renderCatalogControls(){
   const clothing=S.section==="vestuario";
   $("#clothingTools").classList.toggle("hidden",!clothing);
   $("#catalogSections").querySelectorAll("[data-section]").forEach(b=>{const active=b.dataset.section===S.section;b.classList.toggle("active",active);b.setAttribute("aria-pressed",String(active))});
   $("#clothingOffers").querySelectorAll("[data-offer]").forEach(b=>{const active=b.dataset.offer===S.offer;b.classList.toggle("active",active);b.setAttribute("aria-pressed",String(active))});
-  $("#catalogTitle").textContent=clothing?(S.offer==="donation"?"Doações para retirada grátis":"Vestuário & Brechó"):"Loja Tudo & Tal";
-  $("#clothingIntro").textContent=S.offer==="donation"?"Escolha uma peça, reserve por 24 horas e combine a retirada grátis na loja. Não é necessário comprar.":"Peças com novas histórias. Encontre seu público e tamanho.";
-  const sizes=[...new Set(sectionProducts().map(p=>sizeKey(p.size)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"pt-BR",{numeric:true}));
+  $("#catalogTitle").textContent=clothing?(S.offer==="donation"?"Doações para retirada grátis":"Vestuário & Brechó"):
+    S.category!=="Todos"?TudoTalGroups.groups.find(g=>g.id===S.category).label:S.section==="loja"?"Cuidado pessoal e achadinhos":"Todos os produtos";
+  $("#clothingIntro").textContent=S.offer==="donation"?"Escolha uma peça, reserve por 24 horas e combine a retirada grátis na loja. Não é necessário comprar.":"Novos, usados como novos e usados. Filtre por condição, público e tamanho.";
+  const sizes=[...new Set(sectionProducts().filter(clothingProduct).map(p=>sizeKey(p.size)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"pt-BR",{numeric:true}));
   if(!sizes.includes(S.size))S.size="";
   $("#sizeFilter").innerHTML='<option value="">Todos</option>'+sizes.map(size=>'<option value="'+esc(size)+'">'+esc(size)+'</option>').join("");
-  $("#ageFilter").value=S.age;$("#genderFilter").value=S.gender;$("#sizeFilter").value=S.size;
+  $("#conditionFilter").value=S.condition;$("#ageFilter").value=S.age;$("#genderFilter").value=S.gender;$("#sizeFilter").value=S.size;
 }
 function renderCategories(){
-  const cats=["Todos",...new Set(sectionProducts().map(p=>p.category).filter(Boolean))];
-  if(!cats.includes(S.category))S.category="Todos";
-  $("#categoryChips").innerHTML=cats.map(c=>'<button class="chip '+(c===S.category?"active":"")+'" data-cat="'+esc(c)+'">'+esc(c)+'</button>').join("");
-  $("#categoryChips").querySelectorAll("[data-cat]").forEach(b=>b.onclick=()=>{S.category=b.dataset.cat;renderCategories();renderProducts()});
+  const cats=[{id:"Todos",label:"Todos"},...TudoTalGroups.groups];
+  $("#categoryChips").innerHTML=cats.map(c=>'<button type="button" class="chip '+(c.id===S.category&&(c.id!=="Todos"||S.section==="all")?"active":"")+'" aria-pressed="'+(c.id===S.category&&(c.id!=="Todos"||S.section==="all"))+'" data-cat="'+c.id+'">'+esc(c.label)+'</button>').join("");
+  $("#categoryChips").querySelectorAll("[data-cat]").forEach(b=>b.onclick=()=>selectCatalogGroup(b.dataset.cat));
 }
-function selectCatalogSection(section){S.section=section;S.category="Todos";S.query="";$("#catalogSearch").value="";renderCatalogControls();renderCategories();renderProducts()}
-function selectClothingOffer(offer){S.offer=offer;S.category="Todos";renderCatalogControls();renderCategories();renderProducts()}
-function clearClothingFilters(){S.age="";S.gender="";S.size="";S.category="Todos";S.query="";$("#catalogSearch").value="";renderCatalogControls();renderCategories();renderProducts()}
+function resetCatalogClothing(){S.age="";S.gender="";S.size="";S.condition="";S.offer="all"}
+function selectCatalogGroup(group){
+  if(group!=="Todos"&&!TudoTalGroups.groups.some(g=>g.id===group))return;
+  S.category=group;S.section=group==="Todos"?"all":group==="vestuario"?"vestuario":"loja";
+  resetCatalogClothing();renderCatalogControls();renderCategories();renderProducts();
+}
+function selectCatalogSection(section){
+  S.section=section;S.category=section==="vestuario"?"vestuario":"Todos";
+  resetCatalogClothing();S.query="";$("#catalogSearch").value="";renderCatalogControls();renderCategories();renderProducts();
+}
+function selectClothingOffer(offer){S.offer=offer;renderCatalogControls();renderProducts()}
+function clearClothingFilters(){resetCatalogClothing();S.query="";$("#catalogSearch").value="";renderCatalogControls();renderCategories();renderProducts()}
 function renderProducts(){
   const rows=filteredProducts();
   $("#productCount").textContent=rows.length+" produto(s)";
   $("#catalogGrid").innerHTML=rows.length?rows.map(p=>{
-    const meta=[p.brand,p.size,p.condition,({adulto:"Adulto",infantil:"Infantil"})[p.age_group],({feminino:"Feminino",masculino:"Masculino",unissex:"Unissex"})[p.gender]].filter(Boolean).join(" • ");
+    const meta=[p.brand,p.size,TudoTalGroups.conditionValue(p),({adulto:"Adulto",infantil:"Infantil"})[p.age_group],({feminino:"Feminino",masculino:"Masculino",unissex:"Unissex"})[p.gender]].filter(Boolean).join(" • ");
     const stock=Number(p.available_qty||0);
     const discount=Number(p.discount_percent||0),original=Number(p.original_price||p.price||0);
     const priceHtml=p.is_donation?'<div class="product-price donation-price">Grátis</div>':discount>0?'<div class="product-price promo"><small>'+money(original)+'</small><strong>'+money(p.price)+'</strong><span>'+String(discount).replace(".",",")+'% OFF</span></div>':'<div class="product-price">'+money(p.price)+'</div>';
@@ -57,7 +67,7 @@ function renderProducts(){
     const stockHtml=soldOut?'<span class="stock-pill sold-out">'+(p.is_donation?'Indisponível':'Esgotado')+'</span>':'<span class="stock-pill">'+stock+(stock===1?' disponível':' disponíveis')+'</span>';
     const addHtml=(soldOut||p.is_donation)?'':'<button class="add-btn" type="button" data-add="'+esc(p.id)+'" aria-label="Adicionar '+esc(p.name)+'">+</button>';
     const interestHtml=(soldOut&&!p.is_donation)?'<button class="waitlist-btn" type="button" data-interest="'+esc(p.id)+'" aria-label="Quero ser avisado sobre '+esc(p.name)+'">Quero ser avisado</button>':'';
-    return '<article class="product-card'+(soldOut?" sold-out":"")+(discount>0?" on-sale":"")+'"><div class="product-photo">'+(discount>0?'<span class="sale-ribbon">'+String(discount).replace(".",",")+'% OFF</span>':'')+'<img src="'+esc(safePhoto(p))+'" alt="'+esc(p.name)+'" loading="lazy"></div><div class="product-body"><div class="product-category">'+esc(p.is_donation?'Doação · retirada na loja':p.category||'Tudo & Tal')+'</div><div class="product-name">'+esc(p.name)+'</div><div class="product-meta">'+esc(meta||p.sku)+'</div>'+stockHtml+'<div class="product-bottom">'+priceHtml+addHtml+'</div>'+(p.is_donation&&!soldOut?'<button class="donation-btn" type="button" data-donate="'+esc(p.id)+'" aria-label="Quero retirar '+esc(p.name)+' grátis">Quero retirar grátis</button>':'')+interestHtml+'</div></article>';
+    return '<article class="product-card'+(soldOut?" sold-out":"")+(discount>0?" on-sale":"")+'"><div class="product-photo">'+(discount>0?'<span class="sale-ribbon">'+String(discount).replace(".",",")+'% OFF</span>':'')+'<img src="'+esc(safePhoto(p))+'" alt="'+esc(p.name)+'" loading="lazy"></div><div class="product-body"><div class="product-category">'+esc(p.is_donation?'Doação · retirada na loja':TudoTalGroups.group(p).label)+'</div><div class="product-name">'+esc(p.name)+'</div><div class="product-meta">'+esc(meta||p.sku)+'</div>'+stockHtml+'<div class="product-bottom">'+priceHtml+addHtml+'</div>'+(p.is_donation&&!soldOut?'<button class="donation-btn" type="button" data-donate="'+esc(p.id)+'" aria-label="Quero retirar '+esc(p.name)+' grátis">Quero retirar grátis</button>':'')+interestHtml+'</div></article>';
   }).join(""):'<div class="empty">'+(sectionProducts().length?'Nenhuma peça ou produto com esses filtros. Tente limpar a busca.':S.section==='vestuario'?(S.offer==='donation'?'Novas doações em breve. Volte para conferir as peças gratuitas.':'As peças do brechó aparecerão aqui assim que forem cadastradas.'):'Nenhum produto disponível no momento.')+'</div>';
   $("#catalogGrid").querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>addToCart(b.dataset.add));
   $("#catalogGrid").querySelectorAll("[data-donate]").forEach(b=>b.onclick=()=>openDonation(b.dataset.donate,b));
@@ -200,7 +210,7 @@ async function loadProducts(){
 async function init(){
   $("#catalogSections").querySelectorAll("[data-section]").forEach(b=>b.onclick=()=>selectCatalogSection(b.dataset.section));
   $("#clothingOffers").querySelectorAll("[data-offer]").forEach(b=>b.onclick=()=>selectClothingOffer(b.dataset.offer));
-  for(const [id,key] of [["ageFilter","age"],["genderFilter","gender"],["sizeFilter","size"]])$("#"+id).addEventListener("change",e=>{S[key]=e.target.value;renderProducts()});
+  for(const [id,key] of [["conditionFilter","condition"],["ageFilter","age"],["genderFilter","gender"],["sizeFilter","size"]])$("#"+id).addEventListener("change",e=>{S[key]=e.target.value;renderProducts()});
   $("#clearClothingFilters").onclick=clearClothingFilters;
   $("#closeDonation").onclick=closeDonation;$("#donationForm").addEventListener("submit",submitDonation);
   $("#donationModal").addEventListener("click",e=>{if(e.target===$("#donationModal"))closeDonation()});

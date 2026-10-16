@@ -98,7 +98,7 @@ async function checkWorker(){
   assert([...worker.stores.get(worker.cacheName).keys()].every(url=>url.startsWith(base)));
 
   // Static files and the last successful HTML still work offline.
-  const style=base+'styles.css?v=16';worker.setOffline(true);
+  const style=base+source('sw.js').match(/styles\.css\?v=\d+/)[0];worker.setOffline(true);
   assert.match(await (await worker.request(style)).text(),/^static /);
   await assert.rejects(worker.request(api),/offline/);
   const fallback=await (await worker.request(base+'?v=35',{mode:'navigate'})).text();
@@ -136,6 +136,7 @@ async function checkPanel(worker){
     tudoTalSupabase:{from:name=>({select:async()=>({data:name==='products'?await (await worker.request(api)).json():[],error:null})})}
   };
   context.window=context;vm.createContext(context);
+  vm.runInContext(source('product-groups.js'),context);
   vm.runInContext(source('app-2.js'),context);
   vm.runInContext(source('cloud-sync.js'),context);
   assert(await context.tudoTalCloud.syncAndRefresh());

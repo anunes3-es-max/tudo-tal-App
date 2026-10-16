@@ -1,5 +1,5 @@
-const CACHE='tudo-tal-v37';
-const APP=['./','./index.html','./styles.css?v=16','./vip-credit.css?v=1','./vip-credit.js?v=1','./qr-v1.js?v=2','./app-1.js?v=15','./cloud-sync.js?v=16','./app-2.js?v=5','./app-3.js?v=14','./pdv-cart-v23.js?v=3','./labels-v17.js?v=5','./app-4.js?v=10','./catalog-admin.js?v=3','./waitlist-admin.js?v=1','./analytics.js?v=4','./auth-setup.js?v=9','./app-5.js?v=13','./catalogo.html','./catalogo.css?v=5','./catalogo.js?v=4','./manifest.webmanifest','./assets/logo.svg','./assets/icon.svg'];
+const CACHE='tudo-tal-v38';
+const APP=['./','./index.html','./styles.css?v=17','./vip-credit.css?v=1','./vip-credit.js?v=1','./qr-v1.js?v=2','./product-groups.js?v=1','./app-1.js?v=16','./cloud-sync.js?v=16','./app-2.js?v=6','./app-3.js?v=14','./pdv-cart-v23.js?v=3','./labels-v17.js?v=5','./app-4.js?v=10','./catalog-admin.js?v=3','./waitlist-admin.js?v=1','./analytics.js?v=5','./auth-setup.js?v=9','./app-5.js?v=14','./catalogo.html','./catalogo.css?v=6','./catalogo.js?v=5','./manifest.webmanifest','./assets/logo.svg','./assets/icon.svg'];
 const APP_URLS=new Set(APP.map(path=>new URL(path,self.location.href).href));
 
 self.addEventListener('install',e=>e.waitUntil(

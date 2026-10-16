@@ -1,7 +1,7 @@
 "use strict";
 const LOGO_THERMAL_B64="";
-const CATEGORIES={"Moda Adulto":"ADU","Moda Infantil":"INF","Bolsas":"BOL","Calçados":"CAL","Beleza":"BEL","Perfumes":"PER","Skincare":"SKI","Cabelo":"CAB","Cuidado Pessoal":"CUI","Acessórios":"ACE","Achadinhos":"ACH","Outros":"OUT"};
-const MULTI_CATEGORIES=new Set(["Beleza","Perfumes","Skincare","Cabelo","Cuidado Pessoal"]);
+const CATEGORIES={"Skincare e Cosméticos":"COS","Perfumes":"PER","Cabelo":"CAB","Achadinhos":"ACH","Vestuário & Brechó":"VES"};
+const MULTI_CATEGORIES=new Set(["Skincare e Cosméticos","Perfumes","Cabelo","Beleza","Skincare","Cuidado Pessoal"]);
 const DB_NAME="TudoTalDB",DB_VERSION=1;let db;
 const state={products:[],sales:[],cash:[],view:"dashboard",editPhoto:null,currentSaleProduct:null};
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];

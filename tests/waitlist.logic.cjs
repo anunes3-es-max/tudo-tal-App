@@ -69,7 +69,7 @@ function environment(kind){
 }
 (async()=>{
   const publicUi=environment('store'),p=publicUi.context,d=publicUi.document;
-  publicUi.load('catalogo.js');await p.init();
+  publicUi.load('product-groups.js');publicUi.load('catalogo.js');await p.init();
   assert.match(d.ids.get('catalogGrid').html,/Esgotado/);
   assert.match(d.ids.get('catalogGrid').html,/data-interest="qa-zero"/);
   assert.doesNotMatch(d.ids.get('catalogGrid').html,/data-add="qa-zero"/);

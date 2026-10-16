@@ -1261,3 +1261,16 @@ body::before{opacity:.12;background-image:radial-gradient(rgba(120,87,232,.22) .
 .waitlist-status-edit .input{min-height:38px;padding:8px 10px;font-size:11px;width:190px}
 @media(max-width:600px){.waitlist-customer{grid-template-columns:1fr;gap:10px}.waitlist-customer-actions{justify-items:start}.waitlist-status-edit{width:100%}.waitlist-status-edit .input{width:100%;min-width:0;flex:1}.waitlist-product-head h2{font-size:21px}.waitlist-product-head img{width:60px;height:60px}}
 
+/* Estoque organizado com a mesma classificação do catálogo. */
+.stock-groups{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+.stock-group{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:10px 13px;border:1px solid #4b4d64;border-radius:12px;color:#e9e8f2;background:#242635;font:inherit;font-size:12px;font-weight:750}
+.stock-group.active{color:#fff;background:#6650bd;border-color:#a998ed;box-shadow:0 0 0 1px #a998ed}
+.stock-group b{min-width:23px;padding:3px 6px;border-radius:9px;color:inherit;background:rgba(255,255,255,.12);font-size:10px}
+.stock-group:focus-visible{outline:3px solid #bba6ff;outline-offset:3px}
+.stock-clothing-filters{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;padding:16px;border:1px solid #3d3e54;border-radius:16px;margin-bottom:12px}
+.stock-clothing-filters label{font-size:12px;min-width:0}
+.stock-clothing-filters .input{width:100%;min-height:44px;margin-top:6px}
+.stock-filter-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.stock-filter-summary .hint{margin:0}
+.stock-filter-summary button{min-height:44px;white-space:nowrap}
+@media(max-width:700px){.stock-clothing-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.stock-group{font-size:11px;padding:9px 11px}.stock-filter-summary{align-items:flex-start}.stock-filter-summary .hint{padding-top:12px}}

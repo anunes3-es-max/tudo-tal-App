@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="Tudo & Tal">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/icon.svg">
-  <link rel="stylesheet" href="styles.css?v=16">
+  <link rel="stylesheet" href="styles.css?v=17">
   <link rel="stylesheet" href="vip-credit.css?v=1">
   <title>Tudo & Tal</title>
 </head>
@@ -106,6 +106,15 @@
         <div class="button-row"><button class="secondary" data-nav="espera" type="button">Lista de espera <b class="inline-count hidden" data-waitlist-badge>0</b></button><button class="primary" data-nav="produto-form">+ Cadastrar</button></div>
       </div>
       <input id="productSearch" class="input" placeholder="Buscar por peça, SKU, marca ou proprietário">
+      <div id="stockGroups" class="stock-groups" role="group" aria-label="Grupos do estoque"></div>
+      <div id="stockClothingFilters" class="stock-clothing-filters hidden">
+        <label>Condição<select id="stockCondition" class="input"><option value="">Todos</option><option value="novo">Novos</option><option value="como_novo">Usados como novos</option><option value="usado">Usados</option></select></label>
+        <label>Tipo<select id="stockOffer" class="input"><option value="all">Todos</option><option value="sale">À venda</option><option value="donation">Doações</option></select></label>
+        <label>Público<select id="stockAge" class="input"><option value="">Todos</option><option value="adulto">Adulto</option><option value="infantil">Infantil</option></select></label>
+        <label>Modelo<select id="stockGender" class="input"><option value="">Todos</option><option value="feminino">Feminino</option><option value="masculino">Masculino</option><option value="unissex">Unissex</option></select></label>
+        <label>Tamanho<select id="stockSize" class="input"><option value="">Todos</option></select></label>
+      </div>
+      <div class="stock-filter-summary"><p id="stockFilterSummary" class="hint" role="status"></p><button id="clearStockFilters" class="ghost" type="button">Limpar filtros</button></div>
       <div id="productList" class="list product-list"></div>
     </section>
 
@@ -132,8 +141,8 @@
           </label>
         </div>
         <div class="two">
-          <label>Área do catálogo
-            <select id="productCatalogSection" class="input"><option value="loja">Loja (beleza e demais produtos)</option><option value="vestuario">Vestuário &amp; Brechó</option></select>
+          <label>Área do catálogo · definida pela categoria
+            <select id="productCatalogSection" class="input" disabled><option value="loja">Cuidado pessoal e achadinhos</option><option value="vestuario">Vestuário &amp; Brechó</option></select>
           </label>
           <label id="productOfferLabel" class="hidden">Disponibilizar como
             <select id="productOffer" class="input"><option value="sale">À venda</option><option value="donation">Doação — retirada grátis</option></select>
@@ -158,8 +167,8 @@
         </div>
         <div class="two">
           <label>Condição
-            <select id="productCondition" class="input">
-              <option>Novo</option><option>Excelente</option><option>Muito bom</option><option>Bom</option><option>Regular</option>
+            <select id="productCondition" class="input" required>
+              <option value="">Selecione</option><option selected>Novo</option><option>Usado como novo</option><option>Usado</option>
             </select>
           </label>
           <label>Modalidade
@@ -491,9 +500,10 @@
     </form>
   </dialog>
   <script src="qr-v1.js?v=2"></script>
-  <script src="app-1.js?v=15"></script>
+  <script src="product-groups.js?v=1"></script>
+  <script src="app-1.js?v=16"></script>
   <script src="cloud-sync.js?v=16"></script>
-  <script src="app-2.js?v=5"></script>
+  <script src="app-2.js?v=6"></script>
   <script src="app-3.js?v=14"></script>
   <script src="vip-credit.js?v=1"></script>
   <script src="pdv-cart-v23.js?v=3"></script>
@@ -501,8 +511,8 @@
   <script src="app-4.js?v=10"></script>
   <script src="catalog-admin.js?v=3"></script>
   <script src="waitlist-admin.js?v=1"></script>
-  <script src="analytics.js?v=4"></script>
-  <script src="app-5.js?v=13"></script>
+  <script src="analytics.js?v=5"></script>
+  <script src="app-5.js?v=14"></script>
 </body>
 </html>
 

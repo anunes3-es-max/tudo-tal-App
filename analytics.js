@@ -134,7 +134,7 @@
   function productMeta(s){
     const p=state.products.find(p=>p.id===s.productId||String(p.sku).toUpperCase()===String(s.sku).toUpperCase());
     return {
-      category:s.productCategory||p?.category||"Não informado",
+      category:TudoTalGroups.group({category:s.productCategory||p?.category||""}).label,
       brand:s.productBrand||p?.brand||"Sem marca"
     };
   }
@@ -245,7 +245,7 @@
 
     el.innerHTML=items.map(x=>{
       const cls=x.priority<=1?"urgent":x.priority===3?"slow":"";
-      return '<div class="inventory-advice '+cls+'"><div><strong>'+esc(x.p.name)+'</strong><div class="meta">'+esc(x.p.category)+' • '+esc(x.p.sku)+'</div><div class="meta">'+esc(x.note)+'</div></div><span class="advice-badge">'+esc(x.status)+'</span></div>';
+      return '<div class="inventory-advice '+cls+'"><div><strong>'+esc(x.p.name)+'</strong><div class="meta">'+esc(TudoTalGroups.group(x.p).label)+' • '+esc(x.p.sku)+'</div><div class="meta">'+esc(x.note)+'</div></div><span class="advice-badge">'+esc(x.status)+'</span></div>';
     }).join("");
   }
 
