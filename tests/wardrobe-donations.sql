@@ -4,7 +4,7 @@ select set_config('request.jwt.claim.sub',(select user_id::text from public.app_
 select set_config('qa.wardrobe_prefix','qa-wardrobe-'||gen_random_uuid()::text,true);
 set local role authenticated;
 do $test$
-declare p text:=current_setting('qa.wardrobe_prefix'); r jsonb; doc jsonb;
+declare p text:=current_setting('qa.wardrobe_prefix'); r jsonb; doc jsonb; g text;
 begin
  doc:=jsonb_build_object('id',p||'-sale','sku',p||'-sale','name','QA peça à venda','category','Moda Adulto',
   'mode','proprio','owner_name','QA','price',80,'qty',1,'catalog_section','vestuario','age_group','adulto',
@@ -16,6 +16,14 @@ begin
  assert r->>'photo_url'='https://example.invalid/qa.jpg','Foto mudou ao editar estoque';
  assert not exists(select 1 from public.get_catalog_products_v2() where id=p||'-sale'),'Peça esgotada permaneceu no catálogo';
  assert exists(select 1 from public.products where id=p||'-sale' and qty=0),'Peça esgotada foi removida do estoque interno';
+ foreach g in array array['masculino','feminino','unissex'] loop
+   r:=public.save_product(doc||jsonb_build_object('id',p||'-perfume','sku',p||'-perfume',
+     'name','Fragrância QA','category','Perfumes','catalog_section','loja','age_group',null,
+     'size','100 ml','qty',0,'gender',g));
+   assert r->>'gender'=g,'Perfil do perfume não foi salvo';
+   assert (select gender=g and available_qty=0 and catalog_section='loja' from public.get_catalog_products_v2() where id=p||'-perfume'),
+     'Perfil do perfume não chegou ao catálogo ou perfume esgotado desapareceu';
+ end loop;
  begin
   perform public.save_product(doc||'{"qty":3,"expected_qty":1}'::jsonb);
   raise exception 'Ajuste desatualizado aceito';

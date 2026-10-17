@@ -141,6 +141,27 @@ function env(kind){
  await ac.saveProduct({preventDefault(){}});assert.equal(saved[1].isDonation,true);assert.equal(saved[1].price,0);assert.equal(saved[1].ageGroup,'infantil');
  ad.ids.get('productOffer').value='sale';ac.syncProductCatalogFields();assert.equal(ad.ids.get('productPrice').readOnly,false);assert.equal(ad.ids.get('productPrice').value,'');
  console.log('PASS: explicit update button; stock zero; original quantity snapshot; photo preservation; donation metadata and zero-price controls.');
+ const perfume={...product,id:'perfume-admin',sku:'PER-1',name:'Fragrância QA',category:'Perfumes',catalogSection:'loja',gender:'',size:'100 ml',qty:2};
+ ac.state.products.push(perfume);
+ for(const [gender,label] of [['masculino','Masculino'],['feminino','Feminino'],['unissex','Unissex']]){
+   ac.editProduct(perfume.id);
+   assert(!ad.ids.get('productClothingFields').classList.contains('hidden'),'Perfume sem campo de perfil');
+   assert(ad.ids.get('productAgeGroupLabel').classList.contains('hidden'),'Perfume pediu idade de vestuário');
+   assert(ad.ids.get('productOfferLabel').classList.contains('hidden'),'Perfume mostrou doação');
+   assert.equal(ad.ids.get('productGenderLabel').textContent,'Perfil da fragrância');
+   assert(!ad.ids.get('productAgeGroup').required&&!ad.ids.get('productSize').required);
+   ad.ids.get('productGender').value=gender;await ac.saveProduct({preventDefault(){}});
+   assert.equal(saved.at(-1).gender,gender);assert.equal(saved.at(-1).ageGroup,'');
+   perfume.gender=saved.at(-1).gender;ac.editProduct(perfume.id);assert.equal(ad.ids.get('productGender').value,gender);
+   ac.renderProducts();assert.match(ad.ids.get('productList').html,new RegExp(label));
+   rows.find(p=>p.id==='perfume').gender=gender;await c.loadProducts();c.selectCatalogGroup('perfumes');
+   assert.match(d.ids.get('catalogGrid').html,new RegExp(label),'Perfil salvo não apareceu no catálogo');
+ }
+ ac.editProduct(perfume.id);ad.ids.get('productQty').value='0';await ac.saveProduct({preventDefault(){}});
+ assert.equal(saved.at(-1).gender,'unissex');assert.equal(saved.at(-1).qty,0);assert.equal(saved.at(-1).photo,'catalog-photo.jpg');
+ ad.ids.get('productGender').value='';await ac.saveProduct({preventDefault(){}});assert.equal(saved.at(-1).gender,'','Perfil desconhecido recebeu classificação automática');
+ ac.editProduct(product.id);assert(ad.ids.get('productClothingFields').classList.contains('hidden'),'Perfil exibido em produto de cabelo');
+ console.log('PASS: perfume profile edit/save/reopen, all three catalog labels, stock zero and photo preservation, no forced classification, no clothing-only fields.');
  ac.state.products=rows.map(p=>({...p,qty:p.available_qty,owner:'QA',sku:'SKU-'+p.id,isDonation:!!p.is_donation,catalogSection:p.catalog_section}));
  ac.clearStockFilters();assert.equal(a.run('stockFilteredProducts().length'),rows.length);
  assert.equal(ad.ids.get('stockGroups').querySelectorAll('[data-stock-group]').length,6);

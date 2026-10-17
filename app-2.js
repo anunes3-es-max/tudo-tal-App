@@ -40,8 +40,9 @@ function renderProducts(){
     const promoPrice=Number(p.price||0)*(1-d/100);
     const photo=p.photo?'<img src="'+p.photo+'" alt="">':'<img src="assets/icon.svg" alt="">';
     const promo=d?'<span class="badge promo-admin-badge">Promo '+String(d).replace(".",",")+'%</span>':'';
+    const fragranceProfile=TudoTalGroups.groupId(p)==='perfumes'?({feminino:'Feminino',masculino:'Masculino',unissex:'Unissex'})[p.gender]:'';
     const price=p.isDonation?'<div class="price">Grátis<br><small>Doação</small></div>':d?'<div class="price promo-admin-price"><small>'+money(p.price)+'</small><strong>'+money(promoPrice)+'</strong></div>':'<div class="price">'+money(p.price)+'</div>';
-    return '<div class="list-item">'+photo+'<div class="list-main"><strong>'+esc(p.name)+'</strong><div class="meta">'+esc(p.sku)+' • '+esc(TudoTalGroups.group(p).label)+(p.size?' • '+esc(p.size):'')+(TudoTalGroups.groupId(p)==='vestuario'&&TudoTalGroups.conditionValue(p)?' • '+esc(TudoTalGroups.conditionValue(p)):'')+'</div><div class="meta">'+esc(p.owner)+' • <span class="badge '+(p.qty>0?'ok':'zero')+'">'+(p.qty>0?p.qty+' em estoque':'Sem estoque')+'</span> '+promo+'</div><div class="item-actions"><button class="mini" onclick="editProduct(\''+p.id+'\')">Editar</button><button class="mini" onclick="labelProduct(\''+p.id+'\')">Etiqueta</button>'+(p.isDonation?'':'<button class="mini" onclick="sellProduct(\''+p.sku+'\')">Vender</button>')+'</div></div>'+price+'</div>';
+    return '<div class="list-item">'+photo+'<div class="list-main"><strong>'+esc(p.name)+'</strong><div class="meta">'+esc(p.sku)+' • '+esc(TudoTalGroups.group(p).label)+(p.size?' • '+esc(p.size):'')+(fragranceProfile?' • '+esc(fragranceProfile):'')+(TudoTalGroups.groupId(p)==='vestuario'&&TudoTalGroups.conditionValue(p)?' • '+esc(TudoTalGroups.conditionValue(p)):'')+'</div><div class="meta">'+esc(p.owner)+' • <span class="badge '+(p.qty>0?'ok':'zero')+'">'+(p.qty>0?p.qty+' em estoque':'Sem estoque')+'</span> '+promo+'</div><div class="item-actions"><button class="mini" onclick="editProduct(\''+p.id+'\')">Editar</button><button class="mini" onclick="labelProduct(\''+p.id+'\')">Etiqueta</button>'+(p.isDonation?'':'<button class="mini" onclick="sellProduct(\''+p.sku+'\')">Vender</button>')+'</div></div>'+price+'</div>';
   }).join(""):'<div class="empty">Nenhum produto encontrado.</div>';
 }
 function fillCategoryOptions(){$("#productCategory").innerHTML=Object.keys(CATEGORIES).map(c=>`<option>${esc(c)}</option>`).join("")}
@@ -52,9 +53,12 @@ function syncProductCatalogFields(fromCategory=false){
     if(["Moda Adulto","Moda Infantil"].includes($("#productCategory").value))$("#productAgeGroup").value=$("#productCategory").value==="Moda Infantil"?"infantil":"adulto";
   }
   const clothing=$("#productCatalogSection").value==="vestuario";
+  const perfume=TudoTalGroups.groupId({category:$("#productCategory").value})==="perfumes";
   if(!clothing)$("#productOffer").value="sale";
   const donation=clothing&&$("#productOffer").value==="donation";
-  $("#productClothingFields").classList.toggle("hidden",!clothing);
+  $("#productClothingFields").classList.toggle("hidden",!clothing&&!perfume);
+  $("#productAgeGroupLabel").classList.toggle("hidden",!clothing);
+  $("#productGenderLabel").textContent=perfume?"Perfil da fragrância":"Modelo";
   $("#productOfferLabel").classList.toggle("hidden",!clothing);
   $("#productDonationHint").classList.toggle("hidden",!donation);
   $("#productAgeGroup").required=clothing;$("#productGender").required=clothing;
@@ -97,7 +101,7 @@ async function saveProduct(e){
   product.active=existing?.active!==false;
   product.catalogSection=inferCatalogSection(category);
   product.ageGroup=product.catalogSection==="vestuario"?$("#productAgeGroup").value:"";
-  product.gender=product.catalogSection==="vestuario"?$("#productGender").value:"";
+  product.gender=product.catalogSection==="vestuario"||TudoTalGroups.groupId(product)==="perfumes"?$("#productGender").value:"";
   product.isDonation=product.catalogSection==="vestuario"&&$("#productOffer").value==="donation";
   if(product.isDonation){product.price=0;product.discountPercent=0;product.mode="proprio"}
   if(!product.name||!product.owner||!Number.isFinite(product.price)||(!product.isDonation&&product.price<=0)||!Number.isInteger(product.qty)||product.qty<0||product.cost<0||product.discountPercent<0||product.discountPercent>50){toast("Confira os campos obrigatórios e o desconto de 0% a 50%.");return}
