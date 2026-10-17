@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="styles.css?v=17">
   <link rel="stylesheet" href="vip-credit.css?v=1">
   <title>Tudo & Tal</title>
+  <link rel="stylesheet" href="finance.css?v=1">
 </head>
 <body class="auth-locked">
   <section id="authGate" class="auth-gate" aria-live="polite">
@@ -156,7 +157,7 @@
             <select id="productGender" class="input"><option value="">Selecione</option><option value="feminino">Feminino</option><option value="masculino">Masculino</option><option value="unissex">Unissex</option></select>
           </label>
         </div>
-        <p id="productDonationHint" class="hint hidden">Doação gratuita de estoque próprio. O cliente reserva por 24 horas e combina a retirada. Confirme a entrega em Pedidos para baixar o estoque, sem gerar venda ou repasse.</p>
+        <p id="productDonationHint" class="hint hidden">Doação gratuita de estoque próprio. O cliente reserva por 1 hora e combina a retirada. Confirme a entrega em Pedidos para baixar o estoque, sem gerar venda ou repasse.</p>
         <div class="two">
           <label>Tamanho / volume
             <input id="productSize" class="input" placeholder="M, 38, 230g...">
@@ -227,7 +228,15 @@
           <button id="stopCameraBtn" class="ghost">Fechar câmera</button>
         </div>
       </div>
+      <div class="finance-nav"><button type="button" class="secondary" data-nav="historico">Histórico de vendas · correções e trocas</button><button type="button" class="ghost" data-nav="caixa">Abrir caixa</button></div>
       <div id="saleProductCard"><div class="empty">Bipe o primeiro item para iniciar a compra.</div></div>
+    </section>
+
+    <section id="view-historico" class="view">
+      <div class="section-head"><div><p class="eyebrow">VENDAS</p><h1>Histórico e correções</h1><p class="hint">Corrija preços, registre devoluções e faça trocas com o histórico preservado.</p></div></div>
+      <div class="finance-nav"><button class="secondary" data-nav="venda">Nova venda</button><button class="ghost" data-nav="caixa">Caixa e relatórios</button></div>
+      <div class="two"><label>Buscar venda<input id="salesHistorySearch" class="input" type="search" placeholder="Produto, SKU ou cliente"></label><label>Situação<select id="salesHistoryStatus" class="input"><option>Todas</option><option>Ativa</option><option>Cancelada</option></select></label></div>
+      <p id="salesHistoryCount" class="hint"></p><div id="salesHistoryList" class="list"></div><button id="salesHistoryMore" class="ghost" hidden>Mostrar mais</button>
     </section>
 
     <section id="view-etiqueta" class="view">
@@ -291,7 +300,12 @@
     </section>
 
     <section id="view-caixa" class="view">
-      <div class="section-head"><div><p class="eyebrow">FINANCEIRO</p><h1>Caixa</h1></div></div>
+      <div class="section-head"><div><p class="eyebrow">FINANCEIRO</p><h1>Caixa e fechamentos</h1><p class="hint">Entradas, saídas e conferência com os registros oficiais da loja.</p></div></div>
+      <div class="finance-toolbar panel"><label>Período<select id="financePeriod" class="input"><option value="day">Diário</option><option value="week">Semanal</option><option value="month">Mensal</option></select></label><label>Data de referência<input id="financeDate" class="input" type="date"></label><button id="financeRefresh" class="secondary" type="button">Atualizar</button><button id="financePdf" class="primary" type="button" disabled>Baixar relatório PDF</button><button id="financeClose" class="secondary" type="button" disabled>Conferir e fechar dia</button></div>
+      <p id="financeStatus" class="hint" role="status" aria-live="polite"></p>
+      <div id="financeSummary" class="finance-cards"></div><p id="financeOpening" class="hint"></p><p id="financeUnknown" class="hint"></p>
+      <div id="financeMethods" class="panel"></div>
+      <details class="panel finance-manual"><summary>Registrar entrada ou saída</summary><p class="hint">Use para despesas, compras, aportes e retiradas. Vendas, recebimentos VIP e repasses confirmados já geram seus próprios movimentos. Na primeira conferência, compare o saldo do sistema ao valor real por forma de pagamento. Lance somente a diferença de saldo anterior como “Saldo inicial”, com justificativa, para não duplicar valores.</p>
       <form id="cashForm" class="form panel">
         <div class="two">
           <label>Tipo
@@ -301,12 +315,14 @@
             <input id="cashValue" required type="number" min="0.01" step="0.01" class="input">
           </label>
         </div>
+        <div class="two"><label>Forma<select id="cashMethod" class="input"><option>Pix</option><option>Dinheiro</option><option>Transferência</option><option>Outro</option><option>Não informado</option></select></label><label>Categoria<select id="cashCategory" class="input"><option>Despesas</option><option>Compra de estoque</option><option>Embalagens</option><option>Frete</option><option>Retirada</option><option>Aporte</option><option>Saldo inicial</option><option>Outros</option></select></label></div>
         <label>Descrição
           <input id="cashDescription" required class="input" placeholder="Ex.: Embalagens">
         </label>
         <button type="submit" class="primary">Registrar movimento</button>
       </form>
-      <div id="cashList" class="list"></div>
+      </details><div id="financePending" class="panel"></div><div id="financeClosures" class="panel"></div>
+      <h2>Movimentações do período</h2><div id="cashList" class="list"></div>
     </section>
 
     <section id="view-analytics" class="view">
@@ -314,7 +330,7 @@
         <div>
           <p class="eyebrow">INTELIGÊNCIA DE VENDAS</p>
           <h1>Análises & compras</h1>
-          <p class="hint">Entenda o que gira mais, quem compra e onde priorizar reposição. Os indicadores usam os dados internos da Tudo & Tal.</p>
+          <p class="hint">Entenda o que gira mais, quem compra e onde priorizar reposição. Os indicadores usam os valores atuais das vendas após correções. Fechamentos preservados e movimentações por data ficam em Caixa.</p>
         </div>
         <button class="ghost" data-nav="dashboard">Voltar</button>
       </div>
@@ -465,7 +481,7 @@
         <p class="hint">Os dados principais agora ficam na nuvem e também neste aparelho. Continue fazendo backups periódicos como camada extra de segurança.</p>
         <div class="button-row">
           <button id="exportBtn" class="secondary">Exportar backup</button>
-          <label class="secondary file-button">Restaurar backup<input id="importBackup" type="file" accept="application/json"></label>
+          <p class="hint">O backup inclui estoque, vendas, parcelas, movimentos e fechamentos. A recuperação deve ser assistida para preservar a auditoria e evitar sobrescrever pagamentos.</p>
         </div>
       </div>
       <div class="panel">
@@ -499,20 +515,24 @@
       <div class="vip-dialog-actions"><button id="vipReceiptCancel" class="ghost" type="button" onclick="closeVipReceipt()">Cancelar</button><button id="vipReceiptSave" class="primary" type="submit">Confirmar recebimento</button></div>
     </form>
   </dialog>
+  <dialog id="financeActionDialog" class="finance-dialog" aria-labelledby="financeActionTitle"><form id="financeActionForm"><h2 id="financeActionTitle"></h2><div id="financeActionBody" class="form"></div><p id="financeActionError" role="alert"></p><div class="finance-dialog-actions"><button id="financeActionCancel" class="ghost" type="button">Voltar</button><button id="financeActionSave" class="primary" type="submit">Conferir e confirmar</button></div></form></dialog>
+  <dialog id="financeAuthDialog" class="finance-dialog" aria-labelledby="financeAuthTitle"><form id="financeAuthForm"><h2 id="financeAuthTitle">Confirmação de administrador</h2><p id="financeAuthSummary"></p><p class="hint">Use a senha da conta com que você entrou na loja.</p><label>Senha da sua conta<input id="financePassword" class="input" type="password" autocomplete="current-password" required></label><p id="financeAuthError" role="alert"></p><div class="finance-dialog-actions"><button id="financeAuthCancel" class="ghost" type="button">Cancelar</button><button class="primary" type="submit">Confirmar senha</button></div></form></dialog>
   <script src="qr-v1.js?v=2"></script>
   <script src="product-groups.js?v=1"></script>
-  <script src="app-1.js?v=16"></script>
-  <script src="cloud-sync.js?v=16"></script>
+  <script src="app-1.js?v=17"></script>
+  <script src="cloud-sync.js?v=17"></script>
   <script src="app-2.js?v=6"></script>
   <script src="app-3.js?v=14"></script>
   <script src="vip-credit.js?v=1"></script>
   <script src="pdv-cart-v23.js?v=3"></script>
   <script src="labels-v17.js?v=5"></script>
-  <script src="app-4.js?v=10"></script>
+  <script src="app-4.js?v=11"></script>
   <script src="catalog-admin.js?v=3"></script>
   <script src="waitlist-admin.js?v=1"></script>
-  <script src="analytics.js?v=5"></script>
-  <script src="app-5.js?v=14"></script>
+  <script src="analytics.js?v=6"></script>
+  <script src="finance-pdf.js?v=1"></script>
+  <script src="finance.js?v=1"></script>
+  <script src="app-5.js?v=15"></script>
 </body>
 </html>
 

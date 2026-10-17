@@ -2,7 +2,7 @@
 
 (function(){
   const TABLES={products:"products",sales:"sales",cash:"cash"};
-  let syncing=false;
+  let syncing=null;
   let lastStatus="";
 
   function client(){return window.tudoTalSupabase||null}
@@ -56,7 +56,7 @@
   }
   function saleFromCloud(r){
     return {
-      id:r.id,date:r.sale_date,sku:r.sku,productId:r.product_id||"",productName:r.product_name,
+      id:r.id,status:r.status||"Ativa",revision:Number(r.revision||0),originalData:r.original_data||null,repassePaidAmount:Number(r.repasse_paid_amount||0),date:r.sale_date,sku:r.sku,productId:r.product_id||"",productName:r.product_name,
       productCategory:r.product_category||"",productBrand:r.product_brand||"",qty:Number(r.qty||0),unitPrice:Number(r.unit_price||0),listUnitPrice:Number((r.list_unit_price??r.unit_price)||0),total:Number(r.total||0),discountPercent:Number(r.discount_percent||0),discountAmount:Number(r.discount_amount||0),promotionDiscountPercent:Number(r.promotion_discount_percent||0),checkoutDiscountPercent:Number(r.checkout_discount_percent||0),cartId:r.cart_id||"",
       commissionRate:Number(r.commission_rate||0),commission:Number(r.commission||0),
       repasse:Number(r.repasse||0),mode:r.mode,owner:r.owner_name||"Tudo e Tal",
@@ -70,7 +70,7 @@
   function cashToCloud(o){
     return {
       id:o.id,movement_date:o.date||new Date().toISOString(),type:o.type,
-      value:Number(o.value||0),description:o.description,
+      value:Number(o.value||0),description:o.description,method:o.method,category:o.category,
       created_at:o.date||new Date().toISOString()
     };
   }
@@ -206,76 +206,30 @@
     }
   }
   async function syncAll(){
-    if(syncing)return false;
+    if(syncing)return syncing;
     if(!client()){status("Nuvem indisponível nesta sessão.","error");return false}
-    if(navigator.onLine===false){status("Sem internet. Seus dados continuam salvos neste aparelho.","wait");return false}
-    syncing=true;
-    status("☁️ Sincronizando dados...","info");
-    try{
-      // A nuvem é a fonte de verdade para estoque, vendas e caixa.
-      // Salvamentos novos são enviados no momento da ação; a sincronização
-      // apenas baixa o estado oficial, impedindo que caches antigos ressuscitem
-      // vendas ou quantidades já alteradas em outro aparelho.
-      const authoritativeProducts=await fetchRemote("products");
-      window.__TDT_CLOUD_APPLYING__=true;
+    if(navigator.onLine===false){status("Sem internet. Exibindo a última sincronização; operações financeiras precisam de conexão.","wait");return false}
+    syncing=(async()=>{
+      status("☁️ Sincronizando estoque, vendas e caixa...","info");
       try{
-        await dbClear("products");
-        for(const row of authoritativeProducts)await localPut("products",row);
-      }finally{window.__TDT_CLOUD_APPLYING__=false}
-
-      for(const storeName of ["sales","cash"]){
-        const rows=await fetchRemote(storeName);
+        const {data,error}=await client().rpc("operational_snapshot");
+        if(error)throw error;
+        if(!data||![data.products,data.sales,data.cash].every(Array.isArray))throw Error("Resposta incompleta do servidor.");
+        const snapshot={products:data.products.map(productFromCloud),sales:data.sales.map(saleFromCloud),cash:data.cash.map(cashFromCloud)};
         window.__TDT_CLOUD_APPLYING__=true;
-        try{
-          await dbClear(storeName);
-          for(const row of rows)await localPut(storeName,row);
-        }finally{window.__TDT_CLOUD_APPLYING__=false}
-      }
-      status("☁️ Tudo sincronizado • "+new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}),"success");
-      return true;
-    }catch(err){
-      console.error("Tudo & Tal cloud sync",err);
-      const detail=String(err?.message||err||"erro desconhecido").slice(0,120);
-      status("⚠️ Sincronização não concluída: "+detail,"error");
-      return false;
-    }finally{syncing=false}
+        try{await new Promise((resolve,reject)=>{
+          const tx=db.transaction(["products","sales","cash","settings"],"readwrite");
+          tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||Error("Sincronização interrompida."));
+          for(const name of ["products","sales","cash"]){const target=tx.objectStore(name);target.clear();for(const row of snapshot[name])target.put(row);}
+          tx.objectStore("settings").put({key:"financeSnapshot",value:data.finance});
+        });}finally{window.__TDT_CLOUD_APPLYING__=false;}
+        state.finance=data.finance;
+        status("☁️ Estoque, vendas e caixa sincronizados • "+new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}),"success");return true;
+      }catch(err){console.error("Tudo & Tal sync",err);status("⚠️ Dados ainda não atualizados: "+String(err?.message||err).slice(0,130),"error");return false;}
+    })();
+    try{return await syncing;}finally{syncing=null;}
   }
-  async function replaceAllFromLocal(){
-    const c=client();
-    if(!c||navigator.onLine===false){status("Backup restaurado localmente. Conecte à internet para enviar à nuvem.","wait");return false}
-    syncing=true;
-    status("☁️ Atualizando a nuvem com o backup restaurado...","info");
-    try{
-      for(const table of ["sales","cash","products"]){
-        const {error}=await c.from(table).delete().not("id","is",null);
-        if(error)throw error;
-      }
-
-      for(const product of await dbAll("products")){
-        const {error}=await c.rpc("save_product",{p_product:productToCloud({...product,expectedQty:null})});
-        if(error)throw error;
-      }
-
-      // INSERT direto em vendas fica bloqueado para impedir que cache antigo
-      // recrie histórico apagado. Na restauração de backup usamos um RPC
-      // administrativo dedicado, que mantém a proteção do PDV.
-      for(const sale of await dbAll("sales")){
-        const {error}=await c.rpc("restore_sale_backup",{p_sale:saleToCloud(sale)});
-        if(error)throw error;
-      }
-
-      for(const movement of await dbAll("cash")){
-        const {error}=await c.rpc("save_cash",{p_cash:cashToCloud(movement)});
-        if(error)throw error;
-      }
-      status("☁️ Backup restaurado e sincronizado com a nuvem.","success");
-      return true;
-    }catch(err){
-      console.error("Tudo & Tal cloud restore",err);
-      status("⚠️ Backup restaurado localmente, mas a nuvem ainda precisa sincronizar.","error");
-      return false;
-    }finally{syncing=false}
-  }
+  async function replaceAllFromLocal(){throw Error("Restauração por substituição desativada: o histórico financeiro deve ser preservado.");}
   async function registerSaleAtomic({saleId,productId,qty,unitPrice,payment,installments,firstDueDate,cardBrand,receivingPlan,rateTier,channel,customerType,purchaseProfile}){
     const c=client();
     if(!c)throw new Error("Nuvem indisponível nesta sessão.");
@@ -308,7 +262,8 @@
       await localPut("sales",localSale);
     }finally{window.__TDT_CLOUD_APPLYING__=false}
 
-    status("☁️ Venda protegida e sincronizada • "+new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}),"success");
+    const synced=await syncAll();
+    status(synced?"☁️ Venda, estoque e caixa sincronizados.":"Venda confirmada no servidor. Atualize para carregar os saldos.",synced?"success":"wait");
     return {status:data.status||"registered",product:localProduct,sale:localSale};
   }
 
@@ -335,9 +290,10 @@
       ?await c.rpc("register_vip_sale_cart",{p_cart_id:cartId,p_items:params.p_items,p_discount_percent:params.p_discount_percent,p_channel:params.p_channel,p_customer_type:params.p_customer_type,p_purchase_profile:params.p_purchase_profile,p_plan:vip.plan,p_customer_name:vip.customerName,p_customer_phone:vip.customerPhone})
       :await c.rpc("register_sale_cart_atomic",params);
     if(error)throw error;
-    await syncAll();
+    const synced=await syncAll();
     await loadState();
-    status("☁️ Compra finalizada e estoque sincronizado • "+new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"}),"success");
+    if(synced)status("☁️ Compra, estoque e financeiro confirmados no servidor.","success");
+    else status("Compra confirmada no servidor. Atualize a tela para conferir os novos saldos.","wait");
     return data;
   }
 
@@ -395,6 +351,7 @@
       renderProducts();
       renderLabelOptions();
       renderCash();
+      if(state.view==="historico"&&typeof renderSalesHistory==="function")renderSalesHistory();
       if(typeof renderRepasses==="function")renderRepasses();
       if(typeof renderAnalytics==="function"&&state.view==="analytics")renderAnalytics();
     }

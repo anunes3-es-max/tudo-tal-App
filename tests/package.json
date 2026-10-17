@@ -1,0 +1,12 @@
+{
+  "name": "tudo-tal-regression-tests",
+  "private": true,
+  "scripts": {
+    "test:db": "node financial-control.local.mjs",
+    "test:ui": "node financial-ui.cjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.10",
+    "jsdom": "27.0.0"
+  }
+}

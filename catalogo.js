@@ -32,7 +32,7 @@ function renderCatalogControls(){
   $("#clothingOffers").querySelectorAll("[data-offer]").forEach(b=>{const active=b.dataset.offer===S.offer;b.classList.toggle("active",active);b.setAttribute("aria-pressed",String(active))});
   $("#catalogTitle").textContent=clothing?(S.offer==="donation"?"Doações para retirada grátis":"Vestuário & Brechó"):
     S.category!=="Todos"?TudoTalGroups.groups.find(g=>g.id===S.category).label:S.section==="loja"?"Cuidado pessoal e achadinhos":"Todos os produtos";
-  $("#clothingIntro").textContent=S.offer==="donation"?"Escolha uma peça, reserve por 24 horas e combine a retirada grátis na loja. Não é necessário comprar.":"Novos, usados como novos e usados. Filtre por condição, público e tamanho.";
+  $("#clothingIntro").textContent=S.offer==="donation"?"Escolha uma peça, reserve por 1 hora e combine a retirada grátis na loja. Não é necessário comprar.":"Novos, usados como novos e usados. Filtre por condição, público e tamanho.";
   const sizes=[...new Set(sectionProducts().filter(clothingProduct).map(p=>sizeKey(p.size)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"pt-BR",{numeric:true}));
   if(!sizes.includes(S.size))S.size="";
   $("#sizeFilter").innerHTML='<option value="">Todos</option>'+sizes.map(size=>'<option value="'+esc(size)+'">'+esc(size)+'</option>').join("");

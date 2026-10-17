@@ -54,7 +54,7 @@
       const end=addPeriod(start,mode,1);
       const sales=state.sales.filter(s=>{
         const t=Date.parse(s.date);
-        return Number.isFinite(t)&&t>=start.getTime()&&t<end.getTime();
+        return s.status!=="Cancelada"&&Number.isFinite(t)&&t>=start.getTime()&&t<end.getTime();
       });
       buckets.push({
         start:start,end:end,label:bucketLabel(start,mode),sales:sales,
@@ -63,7 +63,7 @@
         result:sum(sales,s=>s.result),
         fees:sum(sales,s=>s.processingFeeAmount),
         net:sum(sales,s=>s.netAmount??s.total),
-        transactions:sales.length
+        transactions:new Set(sales.map(s=>s.cartId||s.id)).size
       });
     }
     return buckets;
@@ -85,9 +85,9 @@
       ["Faturamento",money(current.revenue),'<span class="analytics-delta '+v.cls+'">'+v.text+' vs. período anterior</span>'],
       ["Unidades vendidas",String(current.qty),'<span class="analytics-sub">'+title+'</span>'],
       ["Ticket médio",money(ticket),'<span class="analytics-sub">'+current.transactions+' venda(s)</span>'],
-      ["Taxas InfinitePay",money(current.fees),'<span class="analytics-sub">Taxas descontadas das vendas</span>'],
-      ["Líquido após taxas",money(current.net),'<span class="analytics-sub">Faturamento menos taxas de pagamento</span>'],
-      ["Resultado da loja",money(current.result),'<span class="analytics-sub">Já desconta taxas InfinitePay nas vendas novas</span>']
+      ["Taxas previstas",money(current.fees),'<span class="analytics-sub">Estimativa das vendas; confira o valor efetivo no Caixa</span>'],
+      ["Líquido previsto",money(current.net),'<span class="analytics-sub">Faturamento menos taxas de pagamento</span>'],
+      ["Resultado estimado das vendas",money(current.result),'<span class="analytics-sub">Considera custos, repasses e taxas previstas</span>']
     ];
     $("#analyticsKpis").innerHTML=rows.map(r=>'<div class="analytics-kpi"><span>'+r[0]+'</span><strong>'+r[1]+'</strong>'+r[2]+'</div>').join("");
   }
@@ -166,7 +166,7 @@
 
   function renderMarketInsights(){
     const cutoff=Date.now()-90*dayMs;
-    const rows=state.sales.filter(s=>Date.parse(s.date)>=cutoff);
+    const rows=state.sales.filter(s=>s.status!=="Cancelada"&&Date.parse(s.date)>=cutoff);
     const productRows=aggregate(rows,s=>s.productName||s.sku);
     const categoryRows=aggregate(rows,s=>productMeta(s).category);
     const channelRows=aggregate(rows,s=>s.channel||"Não informado",s=>Number(s.total||0));
@@ -212,11 +212,11 @@
     if(!el)return;
     const cutoff90=Date.now()-90*dayMs;
     const cutoff60=Date.now()-60*dayMs;
-    const rows90=state.sales.filter(s=>Date.parse(s.date)>=cutoff90);
+    const rows90=state.sales.filter(s=>s.status!=="Cancelada"&&Date.parse(s.date)>=cutoff90);
 
     const items=state.products.filter(p=>p.active!==false).map(p=>{
       const related90=rows90.filter(s=>s.productId===p.id||String(s.sku).toUpperCase()===String(p.sku).toUpperCase());
-      const all=state.sales.filter(s=>s.productId===p.id||String(s.sku).toUpperCase()===String(p.sku).toUpperCase());
+      const all=state.sales.filter(s=>s.status!=="Cancelada"&&(s.productId===p.id||String(s.sku).toUpperCase()===String(p.sku).toUpperCase()));
       const sold90=sum(related90,s=>s.qty);
       const daily=sold90/90;
       const qty=Number(p.qty||0);

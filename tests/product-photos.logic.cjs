@@ -122,7 +122,7 @@ async function checkWorker(){
 
 async function checkPanel(worker){
   worker.setProducts(products);
-  const local={products:products.map(p=>({id:p.id,name:p.name,photo:base+'photos/wrong.jpg'})),sales:[],cash:[]};
+  const local={products:products.map(p=>({id:p.id,name:p.name,photo:base+'photos/wrong.jpg'})),sales:[],cash:[],settings:[]};
   const elements=new Map(['cloudStatus','productSearch','productList'].map(id=>[id,{value:'',innerHTML:'',dataset:{}}]));
   const document={querySelector:selector=>elements.get(selector.slice(1)),addEventListener(){}};
   const context={document,console,navigator:{onLine:true},Date,Map,URL,
@@ -133,7 +133,15 @@ async function checkPanel(worker){
     async dbClear(name){local[name]=[]},async localPut(name,row){local[name].push(row)},
     async loadState(){context.state.products=local.products},
     renderDashboard(){},renderLabelOptions(){},renderCash(){},
-    tudoTalSupabase:{from:name=>({select:async()=>({data:name==='products'?await (await worker.request(api)).json():[],error:null})})}
+    db:{transaction(names,mode){
+      assert.equal(mode,'readwrite');assert.deepEqual(Array.from(names),['products','sales','cash','settings']);
+      const tx={objectStore:name=>({clear(){local[name]=[]},put(row){local[name].push(row)}})};
+      queueMicrotask(()=>tx.oncomplete());return tx;
+    }},
+    tudoTalSupabase:{rpc:async name=>{
+      assert.equal(name,'operational_snapshot');
+      return {data:{products:await (await worker.request(api)).json(),sales:[],cash:[],finance:{balance:0}},error:null};
+    }}
   };
   context.window=context;vm.createContext(context);
   vm.runInContext(source('product-groups.js'),context);

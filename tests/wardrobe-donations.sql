@@ -41,7 +41,7 @@ declare p text:=current_setting('qa.wardrobe_prefix'); r jsonb; again jsonb;
 begin
  r:=public.create_catalog_donation('Cliente QA','(11) 99999-0101',p||'-gift','Retirada QA');
  perform set_config('qa.donation_order',r->>'order_id',true);
- assert (r->>'subtotal')::numeric=0 and (r->>'reservation_minutes')::int=1440,'Prazo ou total incorreto';
+ assert (r->>'subtotal')::numeric=0 and (r->>'reservation_minutes')::int=60,'Prazo ou total incorreto';
  assert (select available_qty=1 from public.get_catalog_products_v2() where id=p||'-gift'),'Reserva não reduziu disponibilidade';
  again:=public.create_catalog_donation('Cliente QA','5511999990101',p||'-gift',null);
  assert again->>'order_id'=r->>'order_id','Reenvio duplicou reserva';
@@ -93,7 +93,9 @@ begin
   perform public.register_sale_atomic(p||'-bad-sale',p||'-gift',1,0.01,'Pix');
   raise exception 'Doação vendida pelo PDV';
  exception when sqlstate '22023' then null; end;
+ assert (select reservation_expires_at<=created_at+interval '1 hour' from public.catalog_orders where id=oid),'Prazo maior que uma hora';
  perform public.update_catalog_order_status(oid,'Em atendimento');
+ assert (select reservation_expires_at<=created_at+interval '1 hour' from public.catalog_orders where id=oid),'Atendimento prorrogou a reserva';
  r:=public.complete_catalog_donation(oid);
  assert r->>'status'='completed','Retirada não concluída';
  assert (select qty=1 from public.products where id=p||'-gift'),'Estoque físico incorreto';

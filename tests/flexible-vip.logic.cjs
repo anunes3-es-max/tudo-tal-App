@@ -86,8 +86,8 @@ function setup(){
 
   // Real dashboard code must count only paid VIP amounts as cash.
   const dash=read('app-1.js').match(/^function renderDashboard\(\).*$/m)[0];env.run(dash);
-  s.sales=[{id:'sale',cartId:'cart',productName:'Produto QA',customerName:'Cliente QA',payment:'Crediário VIP',total:500,receivedAmount:100,date:new Date().toISOString(),qty:1,mode:'proprio'}];s.cash=[];
-  c.renderDashboard();assert.match(el('dashboardCards').innerHTML,/Crediário a receber<\/span><strong>R\$\s*400,00/);assert.match(el('dashboardCards').innerHTML,/Saldo estimado<\/span><strong>R\$\s*100,00/);
+  s.sales=[{id:'sale',cartId:'cart',productName:'Produto QA',customerName:'Cliente QA',payment:'Crediário VIP',total:500,receivedAmount:100,date:new Date().toISOString(),qty:1,mode:'proprio'}];s.cash=[];s.finance={balance:100,physical:0,card_pending:0};
+  c.renderDashboard();assert.match(el('dashboardCards').innerHTML,/Crediário a receber<\/span><strong>R\$\s*400,00/);assert.match(el('dashboardCards').innerHTML,/Saldo financeiro<\/span><strong>R\$\s*100,00/);
   env.transport.receivables=[{id:'receipt-1',sale_id:'sale',cart_id:'cart',amount:250,paid_amount:50,status:'Pendente',installment_number:1,installment_count:2,due_date:'2099-01-01'}];
   env.transport.payments=[{id:'pay-1',receivable_id:'receipt-1',amount:50,payment_method:'Pix',received_at:new Date().toISOString()}];
   await c.renderFlexibleVipReceivables();assert.match(el('vipReceivableSummary').innerHTML,/200,00/);assert.match(el('vipReceivables').innerHTML,/Cliente QA/);assert.match(el('vipReceivables').innerHTML,/Histórico de recebimentos/);
