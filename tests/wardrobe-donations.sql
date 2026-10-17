@@ -14,7 +14,8 @@ begin
  r:=public.save_product(doc||'{"qty":0,"expected_qty":1}'::jsonb);
  assert (r->>'qty')::integer=0,'Estoque zero não foi salvo';
  assert r->>'photo_url'='https://example.invalid/qa.jpg','Foto mudou ao editar estoque';
- assert (select available_qty=0 from public.get_catalog_products_v2() where id=p||'-sale'),'Esgotado desapareceu';
+ assert not exists(select 1 from public.get_catalog_products_v2() where id=p||'-sale'),'Peça esgotada permaneceu no catálogo';
+ assert exists(select 1 from public.products where id=p||'-sale' and qty=0),'Peça esgotada foi removida do estoque interno';
  begin
   perform public.save_product(doc||'{"qty":3,"expected_qty":1}'::jsonb);
   raise exception 'Ajuste desatualizado aceito';
@@ -48,7 +49,7 @@ begin
  assert (select available_qty=1 from public.get_catalog_products_v2() where id=p||'-gift'),'Reenvio bloqueou outra peça';
  r:=public.create_catalog_donation('Outra pessoa QA','11999990102',p||'-gift',null);
  perform set_config('qa.donation_order_two',r->>'order_id',true);
- assert (select available_qty=0 from public.get_catalog_products_v2() where id=p||'-gift'),'Segunda unidade não reservada';
+ assert not exists(select 1 from public.get_catalog_products_v2() where id=p||'-gift'),'Doação totalmente reservada permaneceu no catálogo';
  begin
   perform public.create_catalog_donation('Sem estoque QA','11999990103',p||'-gift',null);
   raise exception 'Reserva acima do estoque aceita' using errcode='22000';
@@ -114,6 +115,7 @@ begin
  assert (r->>'subtotal')::numeric=80,'Compra paga afetada';
  perform public.confirm_catalog_order((r->>'order_id')::uuid,'Pix');
  assert (select qty=0 from public.products where id=p||'-sale'),'Venda paga não baixou estoque';
+ assert not exists(select 1 from public.get_catalog_products_v2() where id=p||'-sale'),'Peça vendida permaneceu no catálogo';
  r:=public.create_catalog_donation('Reserva expirada QA','11999990105',p||'-gift',null);
  perform set_config('qa.expired_donation_order',r->>'order_id',true);
 end $test$;

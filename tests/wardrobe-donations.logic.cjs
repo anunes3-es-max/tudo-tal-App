@@ -86,7 +86,8 @@ function env(kind){
  d.ids.get('ageFilter').onchange({target:{value:'adulto'}});d.ids.get('genderFilter').onchange({target:{value:'feminino'}});d.ids.get('sizeFilter').onchange({target:{value:'M'}});
  assert.equal(u.run('filteredProducts().length'),1);assert.equal(u.run('filteredProducts()[0].id'),'adult');
  c.clearClothingFilters();d.ids.get('ageFilter').onchange({target:{value:'infantil'}});
- assert.equal(u.run('filteredProducts()[0].id'),'child');assert.match(d.ids.get('catalogGrid').html,/Quero ser avisado/);
+ assert.equal(u.run('filteredProducts()[0].id'),'gift');assert.doesNotMatch(d.ids.get('catalogGrid').html,/Camiseta infantil|Quero ser avisado/);
+ c.openInterest('child');assert(d.ids.get('interestModal').classList.contains('hidden'),'Peça única abriu lista de espera');
  c.selectClothingOffer('donation');assert.match(d.ids.get('catalogGrid').html,/Grátis/);assert.match(d.ids.get('catalogGrid').html,/data-donate="gift"/);assert.doesNotMatch(d.ids.get('catalogGrid').html,/data-add|data-interest/);
  assert.doesNotMatch(d.ids.get('sizeFilter').html,/250 ML/);
  c.addToCart('beauty');c.openDonation('gift');d.ids.get('donationName').value='Cliente QA';d.ids.get('donationPhone').value='123';
@@ -97,25 +98,33 @@ function env(kind){
  assert.match(decodeURIComponent(d.ids.get('whatsappLink').href),/Retirada gratuita/);
  c.openDonation('gift');d.ids.get('donationName').value='Cliente QA';d.ids.get('donationPhone').value='11999990102';reservationError={code:'P0001',message:'Estoque insuficiente.'};
  await c.submitDonation({preventDefault(){}});assert.match(d.ids.get('donationError').text,/Estoque insuficiente/);assert(!d.ids.get('reserveDonationButton').disabled);
- rows[4].available_qty=0;await c.loadProducts();assert.match(d.ids.get('catalogGrid').html,/Indisponível/);assert.doesNotMatch(d.ids.get('catalogGrid').html,/data-donate|data-interest/);
+ rows[4].available_qty=0;await c.loadProducts();assert.match(d.ids.get('catalogGrid').html,/Novas doações em breve/);assert.doesNotMatch(d.ids.get('catalogGrid').html,/data-donate|data-interest/);
+ rows[4].available_qty=1;await c.loadProducts();
  console.log('PASS: section isolation; combined age/gender/size filters; free pickup form; validation; error recovery; shopping cart preserved; unavailable donation.');
  c.selectCatalogGroup('cosmeticos');assert.equal(u.run('filteredProducts().length'),3);
  assert.match(d.ids.get('catalogGrid').html,/Skincare e Cosméticos/);assert.doesNotMatch(d.ids.get('catalogGrid').html,/>Beleza</);
  c.selectCatalogGroup('perfumes');assert.equal(u.run('filteredProducts()[0].id'),'perfume');
  c.selectCatalogGroup('cabelo');assert.equal(u.run('filteredProducts()[0].id'),'beauty');
  c.selectCatalogGroup('achadinhos');assert.equal(u.run('filteredProducts()[0].id'),'find');
- c.selectCatalogGroup('vestuario');assert.equal(u.run('filteredProducts().length'),4);
+ c.selectCatalogGroup('vestuario');assert.equal(u.run('filteredProducts().length'),3);
  d.ids.get('conditionFilter').onchange({target:{value:'novo'}});assert.equal(u.run('filteredProducts()[0].id'),'adult');
  d.ids.get('conditionFilter').onchange({target:{value:'como_novo'}});assert.equal(u.run('filteredProducts()[0].id'),'male');
- d.ids.get('conditionFilter').onchange({target:{value:'usado'}});assert.equal(u.run('filteredProducts().length'),2);
+ d.ids.get('conditionFilter').onchange({target:{value:'usado'}});assert.equal(u.run('filteredProducts().length'),1);
  c.selectClothingOffer('donation');assert.equal(u.run('filteredProducts().length'),1);assert.equal(u.run('filteredProducts()[0].id'),'gift');
- c.selectCatalogGroup('Todos');assert.equal(u.run('filteredProducts().length'),rows.length);
+ c.selectCatalogGroup('Todos');assert.equal(u.run('filteredProducts().length'),rows.length-1);
+ assert.doesNotMatch(d.ids.get('catalogGrid').html,/Camiseta infantil|data-interest="child"/);
+ rows.push({id:'legacy-sold',name:'Bolsa vendida',category:'Bolsas',catalog_section:'loja',price:40,available_qty:0});
+ rows[1].available_qty=0;await c.loadProducts();
+ assert.doesNotMatch(d.ids.get('catalogGrid').html,/Vestido|Bolsa vendida|Quero ser avisado/);
+ d.ids.get('catalogSearch').oninput({target:{value:'Bolsa vendida'}});assert.equal(u.run('filteredProducts().length'),0);
+ d.ids.get('catalogSearch').oninput({target:{value:''}});
+ rows[1].available_qty=1;await c.loadProducts();assert.match(d.ids.get('catalogGrid').html,/Vestido/);
  assert(d.ids.get('clothingTools').classList.contains('hidden'));
  assert.equal(c.TudoTalGroups.conditionId({condition:'Excelente'}),'como_novo');
  assert.equal(c.TudoTalGroups.conditionId({condition:'Muito bom'}),'usado');
  assert.equal(c.TudoTalGroups.conditionId({condition:''}),'');
  assert.equal(c.TudoTalGroups.groupId({category:'Acessórios'}),'achadinhos');
- console.log('PASS: five catalog groups; legacy cosmetic categories combined; clothing condition and donation filters; global Todos restores every product.');
+ console.log('PASS: five catalog groups; legacy cosmetic categories combined; clothing condition and donation filters; global Todos and search hide sold unique pieces; restocking restores visibility.');
 
 
  const a=env('admin'),ac=a.context,ad=a.document;

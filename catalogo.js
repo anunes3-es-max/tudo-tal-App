@@ -16,8 +16,8 @@ function cartTotal(){return cartLines().reduce((s,x)=>s+Number(x.p.price)*x.qty,
 function cartCount(){return cartLines().reduce((s,x)=>s+x.qty,0)}
 function safePhoto(p){return p.photo_url||"assets/icon.svg"}
 function clothingProduct(p){return TudoTalGroups.groupId(p)==="vestuario"}
-function sectionProducts(){return S.products.filter(p=>S.section==="all"||
-  (S.section==="vestuario"?clothingProduct(p)&&(S.offer==="all"||TudoTalGroups.isDonation(p)===(S.offer==="donation")):!clothingProduct(p)))}
+function sectionProducts(){return S.products.filter(p=>(!clothingProduct(p)||Number(p.available_qty||0)>0)&&
+  (S.section==="all"||(S.section==="vestuario"?clothingProduct(p)&&(S.offer==="all"||TudoTalGroups.isDonation(p)===(S.offer==="donation")):!clothingProduct(p))))}
 function sizeKey(value){return TudoTalGroups.sizeKey(value)}
 function filteredProducts(){
   const q=TudoTalGroups.normalize(S.query);
@@ -32,7 +32,7 @@ function renderCatalogControls(){
   $("#clothingOffers").querySelectorAll("[data-offer]").forEach(b=>{const active=b.dataset.offer===S.offer;b.classList.toggle("active",active);b.setAttribute("aria-pressed",String(active))});
   $("#catalogTitle").textContent=clothing?(S.offer==="donation"?"Doações para retirada grátis":"Vestuário & Brechó"):
     S.category!=="Todos"?TudoTalGroups.groups.find(g=>g.id===S.category).label:S.section==="loja"?"Cuidado pessoal e achadinhos":"Todos os produtos";
-  $("#clothingIntro").textContent=S.offer==="donation"?"Escolha uma peça, reserve por 1 hora e combine a retirada grátis na loja. Não é necessário comprar.":"Novos, usados como novos e usados. Filtre por condição, público e tamanho.";
+  $("#clothingIntro").textContent=S.offer==="donation"?"Escolha uma peça, reserve por 1 hora e combine a retirada grátis na loja. Não é necessário comprar.":"Novos, usados como novos e usados. Aqui aparecem apenas as peças disponíveis. Filtre por condição, público e tamanho.";
   const sizes=[...new Set(sectionProducts().filter(clothingProduct).map(p=>sizeKey(p.size)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"pt-BR",{numeric:true}));
   if(!sizes.includes(S.size))S.size="";
   $("#sizeFilter").innerHTML='<option value="">Todos</option>'+sizes.map(size=>'<option value="'+esc(size)+'">'+esc(size)+'</option>').join("");
@@ -66,16 +66,16 @@ function renderProducts(){
     const soldOut=stock<=0;
     const stockHtml=soldOut?'<span class="stock-pill sold-out">'+(p.is_donation?'Indisponível':'Esgotado')+'</span>':'<span class="stock-pill">'+stock+(stock===1?' disponível':' disponíveis')+'</span>';
     const addHtml=(soldOut||p.is_donation)?'':'<button class="add-btn" type="button" data-add="'+esc(p.id)+'" aria-label="Adicionar '+esc(p.name)+'">+</button>';
-    const interestHtml=(soldOut&&!p.is_donation)?'<button class="waitlist-btn" type="button" data-interest="'+esc(p.id)+'" aria-label="Quero ser avisado sobre '+esc(p.name)+'">Quero ser avisado</button>':'';
+    const interestHtml=(soldOut&&!clothingProduct(p))?'<button class="waitlist-btn" type="button" data-interest="'+esc(p.id)+'" aria-label="Quero ser avisado sobre '+esc(p.name)+'">Quero ser avisado</button>':'';
     return '<article class="product-card'+(soldOut?" sold-out":"")+(discount>0?" on-sale":"")+'"><div class="product-photo">'+(discount>0?'<span class="sale-ribbon">'+String(discount).replace(".",",")+'% OFF</span>':'')+'<img src="'+esc(safePhoto(p))+'" alt="'+esc(p.name)+'" loading="lazy"></div><div class="product-body"><div class="product-category">'+esc(p.is_donation?'Doação · retirada na loja':TudoTalGroups.group(p).label)+'</div><div class="product-name">'+esc(p.name)+'</div><div class="product-meta">'+esc(meta||p.sku)+'</div>'+stockHtml+'<div class="product-bottom">'+priceHtml+addHtml+'</div>'+(p.is_donation&&!soldOut?'<button class="donation-btn" type="button" data-donate="'+esc(p.id)+'" aria-label="Quero retirar '+esc(p.name)+' grátis">Quero retirar grátis</button>':'')+interestHtml+'</div></article>';
-  }).join(""):'<div class="empty">'+(sectionProducts().length?'Nenhuma peça ou produto com esses filtros. Tente limpar a busca.':S.section==='vestuario'?(S.offer==='donation'?'Novas doações em breve. Volte para conferir as peças gratuitas.':'As peças do brechó aparecerão aqui assim que forem cadastradas.'):'Nenhum produto disponível no momento.')+'</div>';
+  }).join(""):'<div class="empty">'+(sectionProducts().length?'Nenhuma peça ou produto com esses filtros. Tente limpar a busca.':S.section==='vestuario'?(S.offer==='donation'?'Novas doações em breve. Volte para conferir as peças gratuitas.':'Novas peças do brechó em breve. Volte para conferir as disponíveis.'):'Nenhum produto disponível no momento.')+'</div>';
   $("#catalogGrid").querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>addToCart(b.dataset.add));
   $("#catalogGrid").querySelectorAll("[data-donate]").forEach(b=>b.onclick=()=>openDonation(b.dataset.donate,b));
   $("#catalogGrid").querySelectorAll("[data-interest]").forEach(b=>b.onclick=()=>openInterest(b.dataset.interest,b));
 }
 function openInterest(id,trigger){
   const p=productById(id);if(!p)return;
-  if(p.is_donation)return;
+  if(clothingProduct(p))return;
   if(Number(p.available_qty||0)>0){toast("Este produto já está disponível para comprar.");return}
   interest.productId=id;interest.trigger=trigger;
   $("#interestForm").reset();$("#interestForm").classList.remove("hidden");
@@ -99,6 +99,8 @@ function interestError(message){
 }
 async function submitInterest(e){
   e.preventDefault();if(interest.posting||!interest.productId)return;
+  const product=productById(interest.productId);
+  if(!product||clothingProduct(product)){closeInterest();return}
   const name=$("#interestName").value.trim();
   let phone=$("#interestPhone").value.replace(/\D/g,"");
   if(phone.length===10||phone.length===11)phone="55"+phone;
