@@ -1,7 +1,9 @@
 -- Test-only schema: empty tables and synthetic authentication, never deploy this fixture.
 create role anon; create role authenticated; create role service_role bypassrls;
 create schema auth; create schema private;
-create table auth.users(id uuid primary key);
+create table auth.users(id uuid primary key,email text);
+create table auth.sessions(id uuid primary key,user_id uuid);
+create table auth.mfa_factors(id uuid primary key,user_id uuid,status text);
 create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
 create function auth.jwt() returns jsonb language sql stable as $$ select coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb $$;
 grant usage on schema public,private,auth to anon,authenticated;
@@ -1710,7 +1712,7 @@ create trigger "settings_set_updated_at" before update on public."settings" for 
 create trigger "trg_products_catalog_reservations" before update on public."products" for each row EXECUTE FUNCTION private.enforce_catalog_reservations();
 create trigger "trg_products_protect_qty" before update on public."products" for each row EXECUTE FUNCTION private.protect_product_qty_from_direct_sync();
 create unique index receivable_installments_cart_number_key on public.receivable_installments(cart_id,installment_number) where cart_id is not null;
-insert into auth.users values(gen_random_uuid());
+insert into auth.users(id) values(gen_random_uuid());
 insert into public.app_members(user_id,role,active) select id,'admin',true from auth.users;
 insert into public.catalog_config(id) values(1);
 insert into public.infinitypay_rates(receiving_plan,rate_tier,brand_group,payment_kind,installments,fee_rate,checked_at) values('one_day','up_to_20','visa_master','debit',1,0.02,current_date);

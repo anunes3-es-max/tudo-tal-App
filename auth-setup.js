@@ -36,18 +36,15 @@ async function getAdminMembership(){
   if(error)return {user,member:null,error};
   return {user,member:data||null};
 }
-async function verifyAdminAndUnlock(){
+async function verifyAdminAndUnlock(unlock=false){
   if(!authClient||recoveryMode)return false;
-  const {user,member}=await getAdminMembership();
-  if(user&&member?.active&&member.role==="admin"){
-    document.body.classList.remove("auth-locked");
-    document.querySelector("#authGate")?.classList.add("hidden");
+  try{
+    const profile=await tdtAccess.api(unlock?'unlock':'profile',{device:navigator.userAgent});
+    window.tdtProfile=profile;
+    if(!unlock){document.body.classList.remove("auth-locked");
+    document.querySelector("#authGate")?.classList.add("hidden");}
     return true;
-  }
-  if(user){
-    authStatus("Sua conta entrou, mas não possui acesso administrativo ativo.","error");
-  }
-  return false;
+  }catch(err){authStatus(err.message||"Entre novamente.","error");return false;}
 }
 async function loginAdmin(e){
   e.preventDefault();
@@ -58,14 +55,17 @@ async function loginAdmin(e){
   try{
     const {error}=await authClient.auth.signInWithPassword({email,password});
     if(error)throw error;
-    const ok=await verifyAdminAndUnlock();
-    if(ok) location.href=APP_URL+"?v=33";
+    await tdtAccess.mfaIfNeeded();
+    await tdtAccess.api('onboard');
+    const ok=await verifyAdminAndUnlock(true);
+    document.querySelector('#loginPassword').value='';
+    if(ok){sessionStorage.setItem('tdtJustSignedIn','1');location.href=APP_URL+"?v=42";}
   }catch(err){
     const msg=String(err?.message||"");
     authStatus(/confirm/i.test(msg)
       ?"Seu e-mail ainda precisa ser confirmado."
       :"Não consegui entrar. Se você copiou a senha e continua dando erro, use “Esqueci minha senha”.","error");
-  }finally{setAuthBusy(false)}
+  }finally{document.querySelector("#loginPassword").value="";setAuthBusy(false)}
 }
 async function requestPasswordReset(){
   const email=document.querySelector("#loginEmail").value.trim();
@@ -102,14 +102,12 @@ async function saveRecoveredPassword(e){
     const {error}=await authClient.auth.updateUser({password});
     if(error)throw error;
     recoveryMode=false;
-    authStatus("Senha alterada com sucesso. Abrindo a Tudo & Tal...","success");
-    const ok=await verifyAdminAndUnlock();
-    if(ok) location.href=APP_URL+"?v=33";
-    else{
-      document.querySelector("#recoveryForm")?.classList.add("hidden");
-      document.querySelector("#adminLoginForm")?.classList.remove("hidden");
-      document.querySelector("#checkAdminAccessBtn")?.classList.remove("hidden");
-    }
+    document.querySelector('#newPassword').value='';document.querySelector('#confirmNewPassword').value='';
+    await authClient.auth.signOut({scope:'local'});
+    document.querySelector('#recoveryForm').classList.add('hidden');
+    document.querySelector('#adminLoginForm').classList.remove('hidden');
+    document.querySelector('#forgotPasswordBtn').classList.remove('hidden');
+    authStatus('Senha salva. Entre com seu e-mail e a nova senha. Se for vendedor, aguarde a ativação pelo administrador.','success');
   }catch(err){
     authStatus("Não consegui salvar a nova senha: "+String(err?.message||"erro desconhecido"),"error");
   }finally{setAuthBusy(false)}
@@ -119,7 +117,7 @@ async function checkAdminAccess(){
   authStatus("Verificando sua conta...");
   try{
     const ok=await verifyAdminAndUnlock();
-    if(ok) location.href=APP_URL+"?v=33";
+    if(ok) location.href=APP_URL+"?v=42";
     else{
       const {data:{user}}=await authClient.auth.getUser();
       if(!user)authStatus("Você ainda não está conectado. Entre com e-mail e senha.","wait");
@@ -129,7 +127,7 @@ async function checkAdminAccess(){
 function urlLooksLikeRecovery(){
   const hash=new URLSearchParams(location.hash.replace(/^#/,""));
   const query=new URLSearchParams(location.search);
-  return hash.get("type")==="recovery" || query.get("type")==="recovery" || query.get("recovery")==="1";
+  return ["recovery","invite"].includes(hash.get("type")) || ["recovery","invite"].includes(query.get("type")) || query.get("recovery")==="1";
 }
 async function requireInitialAdminAuth(){
   const gate=document.querySelector("#authGate");
@@ -148,7 +146,8 @@ async function requireInitialAdminAuth(){
   document.querySelector("#checkAdminAccessBtn")?.addEventListener("click",checkAdminAccess);
   document.querySelector("#recoveryForm")?.addEventListener("submit",saveRecoveredPassword);
 
-  authClient.auth.onAuthStateChange((event)=>{
+  authClient.auth.onAuthStateChange((event,session)=>{
+    if(event==="SIGNED_OUT"||(window.tdtProfile&&session?.user?.id&&session.user.id!==window.tdtProfile.user_id)){document.body.classList.add("auth-locked");gate?.classList.remove("hidden");}
     if(event==="PASSWORD_RECOVERY"){
       gate?.classList.remove("hidden");
       document.body.classList.add("auth-locked");
@@ -162,9 +161,12 @@ async function requireInitialAdminAuth(){
     return false;
   }
 
+  const justSignedIn=sessionStorage.getItem('tdtJustSignedIn');sessionStorage.removeItem('tdtJustSignedIn');
+  if(matchMedia('(pointer:coarse)').matches&&!justSignedIn){try{await tdtAccess.api('lock');}catch(_){}gate?.classList.remove('hidden');return false;}
   const ok=await verifyAdminAndUnlock();
   if(ok)return true;
 
   gate?.classList.remove("hidden");
   return false;
 }
+

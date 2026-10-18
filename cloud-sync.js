@@ -56,7 +56,7 @@
   }
   function saleFromCloud(r){
     return {
-      id:r.id,status:r.status||"Ativa",revision:Number(r.revision||0),originalData:r.original_data||null,repassePaidAmount:Number(r.repasse_paid_amount||0),date:r.sale_date,sku:r.sku,productId:r.product_id||"",productName:r.product_name,
+      id:r.id,operatorId:r.operator_id||null,operatorName:r.operator_name||"",status:r.status||"Ativa",revision:Number(r.revision||0),originalData:r.original_data||null,repassePaidAmount:Number(r.repasse_paid_amount||0),date:r.sale_date,sku:r.sku,productId:r.product_id||"",productName:r.product_name,
       productCategory:r.product_category||"",productBrand:r.product_brand||"",qty:Number(r.qty||0),unitPrice:Number(r.unit_price||0),listUnitPrice:Number((r.list_unit_price??r.unit_price)||0),total:Number(r.total||0),discountPercent:Number(r.discount_percent||0),discountAmount:Number(r.discount_amount||0),promotionDiscountPercent:Number(r.promotion_discount_percent||0),checkoutDiscountPercent:Number(r.checkout_discount_percent||0),cartId:r.cart_id||"",
       commissionRate:Number(r.commission_rate||0),commission:Number(r.commission||0),
       repasse:Number(r.repasse||0),mode:r.mode,owner:r.owner_name||"Tudo e Tal",

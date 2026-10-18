@@ -36,6 +36,7 @@
       const {data:{user},error}=await c().auth.getUser();if(error||!user?.email)throw Error('Sua sessão expirou. Entre novamente no aplicativo.');
       const {data,error:loginError}=await c().auth.signInWithPassword({email:user.email,password:$('#financePassword').value});
       $('#financePassword').value='';if(loginError||data.user?.id!==user.id)throw Error('Não foi possível confirmar a senha dessa conta.');
+      if(window.tdtAccess){await tdtAccess.mfaIfNeeded();await tdtAccess.api('unlock',{device:navigator.userAgent});}
       const pending=authRequest;authRequest=null;$('#financeAuthDialog').close();pending.resolve();
     }catch(err){errorAt($('#financeAuthError'),err);authRequest.busy=false;}finally{busy(e.target,false);}
   }
@@ -72,9 +73,9 @@
   window.renderSalesHistory=function(){
     const host=$('#salesHistoryList');if(!host)return;
     const query=($('#salesHistorySearch')?.value||'').toLocaleLowerCase('pt-BR'),status=$('#salesHistoryStatus').value;
-    const rows=[...state.sales].filter(s=>(status==='Todas'||(s.status||'Ativa')===status)&&[s.productName,s.sku,s.customerName,s.id,s.cartId].join(' ').toLocaleLowerCase('pt-BR').includes(query)).sort((a,b)=>b.date.localeCompare(a.date));
+    const rows=[...state.sales].filter(s=>(status==='Todas'||(s.status||'Ativa')===status)&&[s.productName,s.sku,s.customerName,s.operatorName,s.id,s.cartId].join(' ').toLocaleLowerCase('pt-BR').includes(query)).sort((a,b)=>b.date.localeCompare(a.date));
     $('#salesHistoryCount').textContent=rows.length+' item(ns) de venda · valores atuais após correções';
-    host.innerHTML=rows.length?rows.slice(0,historyLimit).map(s=>'<article class="list-item"><div class="list-main"><strong>'+esc(s.productName)+'</strong><div class="meta">'+stamp(s.date)+' · '+esc(s.sku)+' · '+esc(s.payment)+'</div><div class="meta">'+esc(s.customerName||'Cliente não informado')+' · '+s.qty+' un. · '+esc(s.status||'Ativa')+(s.revision?' · '+s.revision+' correção(ões)':'')+'</div></div><div class="finance-row-end"><strong>'+money(s.total)+'</strong><button class="mini" data-fin-sale="'+esc(s.id)+'">Detalhes / corrigir</button></div></article>').join(''):'<div class="empty">Nenhuma venda encontrada.</div>';
+    host.innerHTML=rows.length?rows.slice(0,historyLimit).map(s=>'<article class="list-item"><div class="list-main"><strong>'+esc(s.productName)+'</strong><div class="meta">'+stamp(s.date)+' · '+esc(s.sku)+' · '+esc(s.payment)+'</div><div class="meta">'+esc(s.customerName||'Cliente não informado')+(s.operatorName?' · Vendedor: '+esc(s.operatorName):'')+' · '+s.qty+' un. · '+esc(s.status||'Ativa')+(s.revision?' · '+s.revision+' correção(ões)':'')+'</div></div><div class="finance-row-end"><strong>'+money(s.total)+'</strong><button class="mini" data-fin-sale="'+esc(s.id)+'">Detalhes / corrigir</button></div></article>').join(''):'<div class="empty">Nenhuma venda encontrada.</div>';
     $('#salesHistoryMore').hidden=rows.length<=historyLimit;
   };
   function openAction(title,body,kind,data){

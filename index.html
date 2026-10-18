@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="vip-credit.css?v=1">
   <title>Tudo & Tal</title>
   <link rel="stylesheet" href="finance.css?v=1">
+  <link rel="stylesheet" href="access-control.css?v=1">
 </head>
 <body class="auth-locked">
   <section id="authGate" class="auth-gate" aria-live="polite">
@@ -20,7 +21,7 @@
       <img class="auth-logo" src="assets/icon.svg" alt="Tudo & Tal">
       <p class="eyebrow">ACESSO SEGURO</p>
       <h1>Entrar na Tudo & Tal</h1>
-      <p id="authIntro" class="auth-copy">Use sua conta de administrador. O cadastro inicial já foi encerrado por segurança.</p>
+      <p id="authIntro" class="auth-copy">Use sua conta individual. Vendedores precisam concluir o cadastro e ter o acesso ativado pelo administrador.</p>
 
       <form id="adminLoginForm" class="auth-form">
         <label>E-mail
@@ -33,7 +34,7 @@
       </form>
 
       <button id="forgotPasswordBtn" class="ghost wide" type="button">Esqueci minha senha</button>
-      <button id="checkAdminAccessBtn" class="ghost wide" type="button">Verificar acesso de administrador</button>
+      <button id="checkAdminAccessBtn" class="ghost wide" type="button">Verificar acesso</button>
 
       <form id="recoveryForm" class="auth-form hidden">
         <p class="auth-copy">Crie uma nova senha para sua conta.</p>
@@ -501,8 +502,9 @@
 
   <div id="toast" class="toast"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="auth-setup.js?v=9"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.0"></script>
+  <script src="access-control.js?v=1"></script>
+  <script src="auth-setup.js?v=10"></script>
   <dialog id="vipReceiptDialog" class="vip-dialog" aria-labelledby="vipReceiptTitle">
     <form id="vipReceiptForm">
       <h2 id="vipReceiptTitle">Registrar recebimento</h2>
@@ -520,7 +522,7 @@
   <script src="qr-v1.js?v=2"></script>
   <script src="product-groups.js?v=1"></script>
   <script src="app-1.js?v=17"></script>
-  <script src="cloud-sync.js?v=17"></script>
+  <script src="cloud-sync.js?v=18"></script>
   <script src="app-2.js?v=7"></script>
   <script src="app-3.js?v=14"></script>
   <script src="vip-credit.js?v=1"></script>
@@ -531,8 +533,8 @@
   <script src="waitlist-admin.js?v=1"></script>
   <script src="analytics.js?v=6"></script>
   <script src="finance-pdf.js?v=1"></script>
-  <script src="finance.js?v=1"></script>
-  <script src="app-5.js?v=15"></script>
+  <script src="finance.js?v=2"></script>
+  <script src="app-5.js?v=16"></script>
 </body>
 </html>
 
