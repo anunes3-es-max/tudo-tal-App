@@ -189,7 +189,7 @@
     ensureModal();
     document.querySelector("#saveCatalogConfig")?.addEventListener("click",saveConfig);
     document.querySelector("#orderBell")?.addEventListener("click",()=>nav("pedidos"));
-    await Promise.all([loadConfig(),fetchOrders(true)]);
+    await Promise.all([loadConfig(),fetchOrders(true),window.initCatalogAppearance?.()]);
     subscribe();
     document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")fetchOrders(true)});
   };

@@ -1,5 +1,5 @@
-const CACHE='tudo-tal-v42';
-const APP=['./','./index.html','./styles.css?v=17','./finance.css?v=1','./finance-pdf.js?v=1','./finance.js?v=2','./vip-credit.css?v=1','./vip-credit.js?v=1','./qr-v1.js?v=2','./product-groups.js?v=1','./app-1.js?v=17','./cloud-sync.js?v=18','./app-2.js?v=7','./app-3.js?v=14','./pdv-cart-v23.js?v=3','./labels-v17.js?v=5','./app-4.js?v=11','./catalog-admin.js?v=3','./waitlist-admin.js?v=1','./analytics.js?v=6','./access-control.js?v=1','./access-control.css?v=1','./auth-setup.js?v=10','./app-5.js?v=16','./catalogo.html','./catalogo.css?v=6','./catalogo.js?v=7','./manifest.webmanifest','./assets/logo.svg','./assets/icon.svg'];
+const CACHE='tudo-tal-v43';
+const APP=['./','./index.html','./styles.css?v=17','./finance.css?v=1','./finance-pdf.js?v=1','./finance.js?v=2','./vip-credit.css?v=1','./vip-credit.js?v=1','./qr-v1.js?v=2','./product-groups.js?v=1','./app-1.js?v=17','./cloud-sync.js?v=18','./app-2.js?v=7','./app-3.js?v=14','./pdv-cart-v23.js?v=3','./labels-v17.js?v=5','./app-4.js?v=11','./catalog-admin.js?v=4','./waitlist-admin.js?v=1','./analytics.js?v=6','./access-control.js?v=1','./access-control.css?v=1','./auth-setup.js?v=10','./app-5.js?v=16','./catalogo.html','./catalogo.css?v=6','./catalogo.js?v=7','./catalog-theme-admin.js?v=1','./manifest.webmanifest','./assets/logo.svg','./assets/icon.svg'];
 const APP_URLS=new Set(APP.map(path=>new URL(path,self.location.href).href));
 
 self.addEventListener('install',e=>e.waitUntil(
