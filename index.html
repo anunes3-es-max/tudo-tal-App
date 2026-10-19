@@ -14,6 +14,7 @@
   <title>Tudo & Tal</title>
   <link rel="stylesheet" href="finance.css?v=1">
   <link rel="stylesheet" href="access-control.css?v=1">
+  <link rel="stylesheet" href="dashboard-details.css?v=1">
 </head>
 <body class="auth-locked">
   <section id="authGate" class="auth-gate" aria-live="polite">
@@ -68,6 +69,12 @@
   </header>
 
   <main id="app">
+    <section id="view-detalhes" class="view">
+      <div class="section-head"><div><p class="eyebrow">DETALHAMENTO</p><h1 id="detailTitle">Detalhes</h1></div><button type="button" class="secondary" data-nav="dashboard">Voltar ao início</button></div>
+      <div class="panel detail-summary"><strong id="detailTotal"></strong><p id="detailNote" class="hint" role="status"></p></div>
+      <div class="detail-toolbar"><input id="detailSearch" class="input" type="search" aria-label="Buscar nos detalhes" placeholder="Buscar cliente, produto ou descrição"><button id="detailRefresh" class="secondary" type="button">Atualizar detalhes</button></div>
+      <p id="detailCount" class="hint"></p><div id="detailList" class="panel"></div>
+    </section>
     <section id="view-dashboard" class="view active">
       <div class="hero">
         <div>
@@ -521,11 +528,11 @@
   <dialog id="financeAuthDialog" class="finance-dialog" aria-labelledby="financeAuthTitle"><form id="financeAuthForm"><h2 id="financeAuthTitle">Confirmação de administrador</h2><p id="financeAuthSummary"></p><p class="hint">Use a senha da conta com que você entrou na loja.</p><label>Senha da sua conta<input id="financePassword" class="input" type="password" autocomplete="current-password" required></label><p id="financeAuthError" role="alert"></p><div class="finance-dialog-actions"><button id="financeAuthCancel" class="ghost" type="button">Cancelar</button><button class="primary" type="submit">Confirmar senha</button></div></form></dialog>
   <script src="qr-v1.js?v=2"></script>
   <script src="product-groups.js?v=1"></script>
-  <script src="app-1.js?v=17"></script>
-  <script src="cloud-sync.js?v=18"></script>
+  <script src="app-1.js?v=18"></script>
+  <script src="cloud-sync.js?v=19"></script>
   <script src="app-2.js?v=7"></script>
   <script src="app-3.js?v=14"></script>
-  <script src="vip-credit.js?v=1"></script>
+  <script src="vip-credit.js?v=2"></script>
   <script src="pdv-cart-v23.js?v=3"></script>
   <script src="labels-v17.js?v=5"></script>
   <script src="app-4.js?v=11"></script>
@@ -535,6 +542,7 @@
   <script src="analytics.js?v=6"></script>
   <script src="finance-pdf.js?v=1"></script>
   <script src="finance.js?v=2"></script>
+  <script src="dashboard-details.js?v=1"></script>
   <script src="app-5.js?v=16"></script>
 </body>
 </html>

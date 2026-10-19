@@ -348,6 +348,7 @@
     if(ok){
       await loadState();
       renderDashboard();
+      if(state.view==="detalhes")await window.renderDashboardDetail?.();
       renderProducts();
       renderLabelOptions();
       renderCash();

@@ -82,6 +82,7 @@
         return '<div class="receivable-row '+(r.due_date<today()?'overdue':'')+'"><div><strong>'+esc(customerFor(r))+'</strong><div class="meta">'+esc(products||'Venda VIP')+'</div><div class="meta">'+part+' • vence '+new Date(r.due_date+'T12:00:00').toLocaleDateString('pt-BR')+(r.due_date<today()?' • VENCIDA':'')+'</div><div class="meta">Combinado '+money(r.amount)+' • recebido '+money(r.paid_amount)+'</div></div><div class="receivable-actions"><strong>'+money(balance(r))+'</strong><button class="mini" type="button" onclick="openVipReceipt(\''+r.id+'\')">Receber valor</button></div></div>';
       }).join(''):'<div class="empty">Nenhuma parcela pendente no Crediário VIP.</div>';
       if(payments.length)list.innerHTML+='<details class="vip-history"><summary>Histórico de recebimentos ('+payments.length+')</summary>'+payments.map(p=>{const r=rows.find(row=>row.id===p.receivable_id);return '<div class="receivable-row"><div><strong>'+esc(r?customerFor(r):'Venda VIP')+'</strong><div class="meta">'+(r?.is_down_payment?'Entrada':'Parcela '+(r?.installment_number||''))+' • '+new Date(p.received_at).toLocaleString('pt-BR')+' • '+esc(p.payment_method)+'</div></div><strong>'+money(p.amount)+'</strong></div>'}).join('')+'</details>';
+      return {rows,payments};
     }catch(err){console.error('Crediário VIP',err);summaryEl.innerHTML='<p class="vip-error">Não consegui atualizar o Crediário VIP. Tente sincronizar novamente.</p>';list.innerHTML=''}
   };
   window.openVipReceipt=function(id){
