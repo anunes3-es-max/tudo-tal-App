@@ -40,7 +40,7 @@ function setup(){
   const stores={products:[],sales:[],cash:[]};
   const client={
     async rpc(name,args){rpcCalls.push({name,args:JSON.parse(JSON.stringify(args))});if(transport.fail)throw new Error('Conexão interrompida');return {data:{total:500,discount_amount:0},error:null}},
-    from(name){const q={select:()=>q,order:()=>q,then:(resolve,reject)=>Promise.resolve({data:name==='receivable_installments'?transport.receivables:name==='receivable_payments'?transport.payments:transport[name]||[],error:null}).then(resolve,reject)};return q}
+    from(name){let start=0,end=Infinity;const q={select:()=>q,order:()=>q,range:(a,b)=>{start=a;end=b;return q},then:(resolve,reject)=>Promise.resolve({data:(name==='receivable_installments'?transport.receivables:name==='receivable_payments'?transport.payments:transport[name]||[]).slice(start,end+1),error:null}).then(resolve,reject)};return q}
   };
   const context={document,state,console:{error(){}},navigator:{onLine:true},URL,Date,Math,Map,Set,Number,Promise,crypto:require('node:crypto').webcrypto,
     localStorage:{getItem:()=>null,setItem(){}},sessionStorage:{getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,v),removeItem:k=>values.delete(k)},

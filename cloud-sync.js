@@ -311,21 +311,23 @@
     return data;
   }
 
-  async function fetchReceivables(){
-    const c=client();
-    if(!c)throw new Error("Nuvem indisponível nesta sessão.");
-    const {data,error}=await c.from("receivable_installments")
-      .select("*")
-      .order("due_date",{ascending:true})
-      .order("installment_number",{ascending:true});
-    if(error)throw error;
-    return data||[];
-  }
-
-  async function fetchVipPayments(){
+  async function fetchAllCreditRows(table,orders){
     const c=client();if(!c)throw new Error("Nuvem indisponível nesta sessão.");
-    const {data,error}=await c.from("receivable_payments").select("*").order("received_at",{ascending:false});
-    if(error)throw error;return data||[];
+    const rows=[],pageSize=500;
+    for(let offset=0;;offset+=pageSize){
+      let query=c.from(table).select("*");
+      for(const [column,ascending] of orders)query=query.order(column,{ascending});
+      const {data,error}=await query.order("id",{ascending:true}).range(offset,offset+pageSize-1);
+      if(error)throw error;
+      if(!Array.isArray(data))throw new Error("Resposta incompleta do crediário. Atualize para conferir.");
+      rows.push(...data);if(data.length<pageSize)return rows;
+    }
+  }
+  async function fetchReceivables(){
+    return fetchAllCreditRows("receivable_installments",[["due_date",true],["installment_number",true]]);
+  }
+  async function fetchVipPayments(){
+    return fetchAllCreditRows("receivable_payments",[["received_at",false]]);
   }
   async function recordVipPayment({id,amount,requestId,method}){
     const c=client();if(!c)throw new Error("Nuvem indisponível nesta sessão.");
