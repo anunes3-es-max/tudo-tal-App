@@ -4,7 +4,8 @@ async function startCamera(){$("#cameraBox").classList.remove("hidden");$("#came
 async function stopCamera(){if(cameraLoop)cancelAnimationFrame(cameraLoop);cameraLoop=null;if(cameraStream){cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null}if(html5Scanner){try{await html5Scanner.stop()}catch(_){}try{html5Scanner.clear()}catch(_){}html5Scanner=null}$("#cameraVideo").classList.add("hidden");$("#html5Reader").classList.add("hidden");$("#cameraBox").classList.add("hidden")}
 let installPrompt=null;function setupInstall(){window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();installPrompt=e;$("#installBtn").classList.remove("hidden")});$("#installBtn").addEventListener("click",async()=>{if(installPrompt){installPrompt.prompt();await installPrompt.userChoice;installPrompt=null;$("#installBtn").classList.add("hidden")}})}
 function setupServiceWorker(){
-  if(!("serviceWorker"in navigator)||!location.protocol.startsWith("http"))return;
+  if(setupServiceWorker.started||!("serviceWorker"in navigator)||!location.protocol.startsWith("http"))return;
+  setupServiceWorker.started=true;
   // Ao trocar o cache antigo, baixa novamente as fotos e o estoque oficiais.
   navigator.serviceWorker.addEventListener("controllerchange",()=>window.tudoTalCloud?.syncAndRefresh());
   navigator.serviceWorker.register("./sw.js",{updateViaCache:"none"}).catch(()=>{});
@@ -24,4 +25,14 @@ saleSkuInput.addEventListener("keydown",e=>{
     lookupSaleSku();
   }
 });$("#cameraBtn").addEventListener("click",startCamera);$("#stopCameraBtn").addEventListener("click",stopCamera);$("#labelProduct").addEventListener("change",renderLabel);$("#printLabelBtn").addEventListener("click",printLabel);$("#downloadLabelBtn").addEventListener("click",downloadLabel);$("#cashForm").addEventListener("submit",saveCash);$("#exportBtn").addEventListener("click",exportBackup);$("#importBackup")?.addEventListener("change",async e=>{try{await importBackup(e.target.files[0])}catch(err){toast("Não consegui restaurar o backup.")}});$("#syncNowBtn")?.addEventListener("click",async()=>{const ok=await window.tudoTalCloud?.syncAndRefresh();toast(ok?"Dados sincronizados.":"Não consegui sincronizar agora.")});window.addEventListener("online",()=>window.tudoTalCloud?.syncAndRefresh());document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")window.tudoTalCloud?.syncAndRefresh()});window.addEventListener("beforeunload",stopCamera);const url=new URL(location.href),incoming=url.searchParams.get("sku");if(incoming){nav("venda");$("#saleSku").value=incoming;lookupSaleSku()}else nav("dashboard");setupServiceWorker()}
-document.addEventListener("DOMContentLoaded",init);
+document.addEventListener("DOMContentLoaded",async()=>{
+  setupServiceWorker();
+  try{await init();}catch(error){
+    console.error('Falha ao iniciar Tudo & Tal:',error);
+    document.body.classList.add('auth-locked');
+    document.querySelector('#authGate')?.classList.remove('hidden');
+    authStatus('Não foi possível carregar o administrador. '+(error?.name==='NotFoundError'?'O armazenamento local precisa ser atualizado. ':error?.message||'')+' Feche outras abas do app e tente novamente.','error');
+    const button=document.createElement('button');button.type='button';button.textContent='Tentar carregar novamente';button.onclick=()=>location.reload();
+    document.querySelector('#authGate')?.append(button);
+  }
+});

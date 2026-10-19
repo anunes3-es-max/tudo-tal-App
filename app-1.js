@@ -2,13 +2,14 @@
 const LOGO_THERMAL_B64="";
 const CATEGORIES={"Skincare e Cosméticos":"COS","Perfumes":"PER","Cabelo":"CAB","Achadinhos":"ACH","Vestuário & Brechó":"VES"};
 const MULTI_CATEGORIES=new Set(["Skincare e Cosméticos","Perfumes","Cabelo","Beleza","Skincare","Cuidado Pessoal"]);
-const DB_NAME="TudoTalDB",DB_VERSION=1;let db;
+const DB_NAME="TudoTalDB",DB_VERSION=2;let db;
 const state={products:[],sales:[],cash:[],view:"dashboard",editPhoto:null,currentSaleProduct:null};
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const money=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const nowISO=()=>new Date().toISOString(),uid=p=>`${p}-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
 function toast(msg){const el=$("#toast");el.textContent=msg;el.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>el.classList.remove("show"),2600)}
-function openDb(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,DB_VERSION);req.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains("products"))d.createObjectStore("products",{keyPath:"id"});if(!d.objectStoreNames.contains("sales"))d.createObjectStore("sales",{keyPath:"id"});if(!d.objectStoreNames.contains("cash"))d.createObjectStore("cash",{keyPath:"id"});if(!d.objectStoreNames.contains("settings"))d.createObjectStore("settings",{keyPath:"key"})};req.onsuccess=()=>{db=req.result;resolve(db)};req.onerror=()=>reject(req.error)})}
+function connectLocalDatabase(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,DB_VERSION);req.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains("products"))d.createObjectStore("products",{keyPath:"id"});if(!d.objectStoreNames.contains("sales"))d.createObjectStore("sales",{keyPath:"id"});if(!d.objectStoreNames.contains("cash"))d.createObjectStore("cash",{keyPath:"id"});if(!d.objectStoreNames.contains("settings"))d.createObjectStore("settings",{keyPath:"key"})};req.onblocked=()=>reject(new Error("Feche as outras abas da Tudo & Tal e abra novamente para atualizar o armazenamento."));req.onsuccess=()=>{const connection=req.result;connection.onversionchange=()=>connection.close();resolve(connection)};req.onerror=()=>reject(req.error)})}
+async function openDb(){if(db)db.close();db=await connectLocalDatabase();return db}
 function store(n,m="readonly"){return db.transaction(n,m).objectStore(n)}
 function dbAll(n){return new Promise((res,rej)=>{const r=store(n).getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error)})}
 function localPut(n,o){return new Promise((res,rej)=>{const r=store(n,"readwrite").put(o);r.onsuccess=()=>res(o);r.onerror=()=>rej(r.error)})}

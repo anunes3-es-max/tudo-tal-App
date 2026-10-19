@@ -10,7 +10,12 @@ window.tdtAccess=(()=>{
  function message(e){alert(e.message||String(e));}
  async function clearPrivateCache(){
    sessionStorage.removeItem('tdtSaleCart');
-   await new Promise((resolve,reject)=>{const q=indexedDB.open('TudoTalDB',1);q.onsuccess=()=>{const d=q.result;const names=[...d.objectStoreNames];if(!names.length){d.close();resolve();return;}const t=d.transaction(names,'readwrite');names.forEach(n=>t.objectStore(n).clear());t.oncomplete=()=>{d.close();resolve();};t.onerror=()=>{d.close();reject(t.error);};};q.onerror=()=>reject(q.error);});
+   const d=await connectLocalDatabase();
+   try{await new Promise((resolve,reject)=>{
+     const names=[...d.objectStoreNames];if(!names.length){resolve();return;}
+     const t=d.transaction(names,'readwrite');names.forEach(n=>t.objectStore(n).clear());
+     t.oncomplete=()=>resolve();t.onerror=()=>reject(t.error);t.onabort=()=>reject(t.error||new Error('Não foi possível preparar o armazenamento.'));
+   });}finally{d.close();}
  }
  async function lock(){
    if(locked)return;locked=true;
