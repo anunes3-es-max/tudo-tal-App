@@ -53,13 +53,13 @@
       $('#financeSummary').innerHTML=cards.map(([title,value])=>'<div class="card"><span>'+title+'</span><strong>'+money(value)+'</strong></div>').join('');
       $('#financeOpening').textContent='Saldo anterior ao período: '+money(data.opening)+' · dinheiro: '+money(data.cash_opening)+'. O saldo depende do saldo inicial e dos movimentos registrados.';
       $('#financeUnknown').textContent=Number(data.unknown_balance)!==0?'Há '+money(data.unknown_balance)+' de saldo com forma “Outro” ou “Não informado”. Esse valor não é contado como dinheiro físico.':'';
-      $('#financeMethods').innerHTML='<h3>Por forma de movimentação</h3>'+table(['Forma','Entradas','Saídas','Variação'],data.methods.map(m=>[esc(m.method),money(m.inflow),money(m.outflow),money(m.net)]));
+      $('#financeMethods').innerHTML='<h3>Por forma de movimentação</h3>'+(!data.methods.length?'<p class="empty">Nenhuma movimentação no período selecionado.</p>':table(['Forma','Entradas','Saídas','Variação'],data.methods.map((m,i)=>['<button type="button" class="mini" data-fin-method="'+i+'">'+esc(m.method)+' · Ver lançamentos</button>',money(m.inflow),money(m.outflow),money(m.net)])));
       const reversed=new Set(data.movements.map(m=>m.reversal_of).filter(Boolean));
       $('#cashList').innerHTML=data.movements.length?[...data.movements].reverse().map(m=>'<article class="list-item"><div class="list-main"><strong>'+esc(m.description)+'</strong><div class="meta">'+stamp(m.occurred_at)+' · '+esc(m.category)+' · '+esc(m.method)+'</div>'+(m.metadata?.record_only?'<div class="meta">Correção do registro; sem transferência feita pelo aplicativo.</div>':'')+'</div><div class="finance-row-end"><strong class="'+(Number(m.amount)<0?'finance-out':'finance-in')+'">'+money(m.amount)+'</strong>'+(m.id.startsWith('cash:')&&!reversed.has(m.id)?'<button class="mini" data-fin-reverse="'+esc(m.id)+'">Estornar lançamento</button>':'')+'</div></article>').join(''):'<div class="empty">Nenhuma entrada ou saída neste período.</div>';
       $('#financePending').innerHTML='<h3>Pendências atuais</h3><p class="hint">Cartão: confirme o líquido recebido no extrato. Devoluções e diferenças só entram no caixa quando você confirma a regularização.</p>'+(data.pending.length?data.pending.map(f=>'<article class="list-item"><div class="list-main"><strong>'+esc(f.description)+'</strong><div class="meta">'+esc(f.customer_name||f.product_name)+' · '+(f.kind==='card'?'Líquido previsto '+money(Number(f.amount)-Number(f.expected_fee)):f.kind==='owner'?'Valor a recuperar do consignante':Number(f.amount)<0?'Valor a devolver':'Valor a receber')+'</div></div><div class="finance-row-end"><strong>'+money(Math.abs(f.amount))+'</strong><button class="mini" data-fin-settle="'+f.id+'">'+(f.kind==='card'?'Confirmar recebimento':'Regularizar')+'</button></div></article>').join(''):'<p class="hint">Nenhuma diferença ou recebimento de cartão pendente.</p>');
       $('#financeClosures').innerHTML='<h3>Fechamentos do período</h3>'+(data.closures.length?data.closures.map(x=>'<article class="list-item"><div><strong>'+dayLabel(x.day)+' · versão '+x.revision+' · '+(x.reopened_at?'Reaberto':'Fechado')+'</strong><div class="meta">Conferido '+money(x.counted_cash)+' · diferença '+money(x.difference)+' · '+esc(x.actor||'Administrador')+'</div><div class="meta">'+esc(x.note)+(x.reopened_at?' · Reabertura: '+esc(x.reopen_reason):'')+'</div></div><div class="finance-row-end"><button class="mini" data-fin-close-pdf="'+x.id+'">PDF desse fechamento</button>'+(!x.reopened_at?'<button class="mini" data-fin-reopen="'+x.id+'">Reabrir dia</button>':'')+'</div></article>').join(''):'<p class="hint">Nenhum fechamento salvo. O relatório semanal e mensal consolida os movimentos, sem duplicar lançamentos.</p>');
       const active=data.closures.some(x=>x.day===from&&!x.reopened_at);$('#financeClose').disabled=mode!=='day'||from>today()||active;$('#financeClose').textContent=active?'Dia fechado':'Conferir e fechar dia';$('#financePdf').disabled=false;
-    }catch(err){if(token===loading){report=null;errorAt($('#financeStatus'),err);}}
+    }catch(err){if(token===loading){report=null;$('#financeMethods').innerHTML='<p class="finance-error">Não foi possível carregar o resumo. Toque em Atualizar para tentar novamente.</p>';errorAt($('#financeStatus'),err);}}
   };
   function table(head,rows){return '<div class="finance-table-wrap"><table class="finance-table"><thead><tr>'+head.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+rows.map(row=>'<tr>'+row.map(x=>'<td>'+x+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';}
   window.saveCash=async function(e){
@@ -75,7 +75,7 @@
     const query=($('#salesHistorySearch')?.value||'').toLocaleLowerCase('pt-BR'),status=$('#salesHistoryStatus').value;
     const rows=[...state.sales].filter(s=>(status==='Todas'||(s.status||'Ativa')===status)&&[s.productName,s.sku,s.customerName,s.operatorName,s.id,s.cartId].join(' ').toLocaleLowerCase('pt-BR').includes(query)).sort((a,b)=>b.date.localeCompare(a.date));
     $('#salesHistoryCount').textContent=rows.length+' item(ns) de venda · valores atuais após correções';
-    host.innerHTML=rows.length?rows.slice(0,historyLimit).map(s=>'<article class="list-item"><div class="list-main"><strong>'+esc(s.productName)+'</strong><div class="meta">'+stamp(s.date)+' · '+esc(s.sku)+' · '+esc(s.payment)+'</div><div class="meta">'+esc(s.customerName||'Cliente não informado')+(s.operatorName?' · Vendedor: '+esc(s.operatorName):'')+' · '+s.qty+' un. · '+esc(s.status||'Ativa')+(s.revision?' · '+s.revision+' correção(ões)':'')+'</div></div><div class="finance-row-end"><strong>'+money(s.total)+'</strong><button class="mini" data-fin-sale="'+esc(s.id)+'">Detalhes / corrigir</button></div></article>').join(''):'<div class="empty">Nenhuma venda encontrada.</div>';
+    host.innerHTML=rows.length?rows.slice(0,historyLimit).map(s=>'<article class="list-item"><div class="list-main"><strong>'+esc(s.productName)+'</strong><div class="meta">'+stamp(s.date)+' · '+esc(s.sku)+' · '+esc(s.payment)+'</div><div class="meta">'+esc(s.customerName||'Cliente não identificado — completar cadastro')+(s.operatorName?' · Vendedor: '+esc(s.operatorName):'')+' · '+s.qty+' un. · '+esc(s.status||'Ativa')+(s.revision?' · '+s.revision+' correção(ões)':'')+'</div></div><div class="finance-row-end"><strong>'+money(s.total)+'</strong><button class="mini" data-fin-sale="'+esc(s.id)+'">Detalhes / corrigir</button></div></article>').join(''):'<div class="empty">Nenhuma venda encontrada.</div>';
     $('#salesHistoryMore').hidden=rows.length<=historyLimit;
   };
   function openAction(title,body,kind,data){
@@ -85,13 +85,25 @@
   function closeAction(){if(request?.busy)return;request=null;$('#financeActionDialog').close();}
   async function openSale(id){
     const s=state.sales.find(x=>x.id===id);if(!s)return;
-    openAction('Venda · '+s.productName,'<p>'+esc(s.sku)+' · '+stamp(s.date)+' · '+esc(s.payment)+'</p><p>Original: <strong>'+money(s.originalData?.total??s.total)+'</strong> · atual: <strong>'+money(s.total)+'</strong> · '+s.qty+' un.</p><div id="saleAudit" class="hint">Carregando histórico…</div>'+(s.status==='Cancelada'?'<p>Este item foi cancelado. As devoluções pendentes ficam no Caixa.</p>':'<label>O que deseja corrigir?<select id="financeSaleAction" class="input"><option value="price">Corrigir preço</option><option value="return">Devolver parte dos itens</option><option value="cancel">Cancelar este item de venda</option><option value="exchange">Trocar por outro produto</option></select></label><div id="financeSaleFields"></div>'+reason()+'<div id="financeSalePreview" class="finance-notice"></div>'), 'sale',s);
+    openAction('Venda · '+s.productName,'<p>'+esc(s.sku)+' · '+stamp(s.date)+' · '+esc(s.payment)+'</p><p>Original: <strong>'+money(s.originalData?.total??s.total)+'</strong> · atual: <strong>'+money(s.total)+'</strong> · '+s.qty+' un.</p><div class="access-actions"><button type="button" class="mini" data-fin-customer="'+esc(s.id)+'">Editar cliente</button><button type="button" class="mini" data-fin-purchase="'+esc(s.id)+'">Cancelar compra inteira</button></div><div id="saleAudit" class="hint">Carregando histórico…</div>'+(s.status==='Cancelada'?'<p>Este item foi cancelado. As devoluções pendentes ficam no Caixa.</p>':'<label>O que deseja corrigir?<select id="financeSaleAction" class="input"><option value="price">Corrigir preço</option><option value="return">Devolver parte dos itens</option><option value="cancel">Cancelar este item de venda</option><option value="exchange">Trocar por outro produto</option></select></label><div id="financeSaleFields"></div>'+reason()+'<div id="financeSalePreview" class="finance-notice"></div>'), 'sale',s);
     $('#financeActionSave').hidden=s.status==='Cancelada';if(s.status!=='Cancelada'){saleFields();$('#financeSaleAction').addEventListener('change',saleFields);}
     const {data,error}=await c().from('finance_events').select('*').eq('sale_id',id).order('occurred_at',{ascending:true});
     if(request?.kind!=='sale'||request.data.id!==id)return;
     $('#saleAudit').innerHTML=error?'Não consegui carregar a auditoria. Atualize antes de corrigir.':'<details><summary>Histórico registrado ('+data.length+')</summary>'+data.map(x=>'<p><strong>'+esc(x.action)+'</strong> · '+stamp(x.occurred_at)+'<br>'+esc(x.reason)+' · '+esc(x.actor||'Histórico anterior')+'<br>Variação da venda: '+money(x.sales_delta)+'</p>').join('')+'</details>';
     if(error)$('#financeActionSave').hidden=true;
   }
+  function purchaseRows(s){return state.sales.filter(x=>(x.cartId||x.id)===(s.cartId||s.id));}
+  function editPurchase(id,action){
+    const sale=state.sales.find(s=>s.id===id);if(!sale)return;
+    const rows=purchaseRows(sale),data={sale,action,revisions:Object.fromEntries(rows.map(s=>[s.id,s.revision||0]))};
+    if(action==='cancel_purchase'&&!rows.some(s=>s.status!=='Cancelada')){toast('Esta compra já está cancelada.');return;}
+    const customer=action==='customer';
+    openAction(customer?'Editar cliente da compra':'Cancelar compra inteira',
+      customer?'<p>A identificação será corrigida em todos os itens desta compra e no crediário. Valores, pagamentos e vencimentos serão preservados.</p><label>Selecionar cliente cadastrado<select id="purchaseCustomerSelect" class="input"><option value="">Novo cliente / preencher abaixo</option></select></label><label>Nome<input id="purchaseCustomerName" class="input" required minlength="2" maxlength="120" value="'+esc(sale.customerName||'')+'"></label><label>WhatsApp (opcional)<input id="purchaseCustomerPhone" class="input" type="tel" value="'+esc(sale.customerPhone||'')+'"></label>'+reason():
+      '<p>Todos os itens ativos desta compra serão cancelados e devolvidos ao estoque:</p><ul>'+rows.filter(s=>s.status!=='Cancelada').map(s=>'<li>'+esc(s.productName)+' · '+s.qty+' un. · '+money(s.total)+'</li>').join('')+'</ul><p>O saldo ainda devido será cancelado. Valores já recebidos ficam no histórico e eventual reembolso ficará pendente no Caixa até você confirmar a devolução.</p>'+reason(), 'purchase',data);
+    if(customer)window.mountCustomerPicker?.('purchaseCustomerSelect','purchaseCustomerName','purchaseCustomerPhone');
+  }
+  window.editSaleCustomer=id=>editPurchase(id,'customer');
   function saleFields(){
     const s=request.data,a=$('#financeSaleAction').value;
     let body=a==='price'?'<label>Novo preço unitário (R$)<input id="financeUnit" class="input" type="number" min="0.01" step="0.01" required value="'+Number(s.unitPrice).toFixed(2)+'"></label>':
@@ -106,7 +118,10 @@
 
   async function submitAction(e){
     e.preventDefault();if(!request||request.busy)return;const req=request;let name,args,summary=$('#financeActionTitle').textContent;const note=$('#financeReason')?.value.trim()||'';
-    if(req.kind==='sale'){
+    if(req.kind==='purchase'){
+      name='finance_purchase_edit';args={p_id:req.id,p_sale_id:req.data.sale.id,p_revisions:req.data.revisions,p_action:req.data.action,p_name:$('#purchaseCustomerName')?.value.trim()||'',p_phone:$('#purchaseCustomerPhone')?.value||'',p_reason:note};
+      summary+=' · '+(req.data.action==='customer'?args.p_name:'Todos os itens ativos voltarão ao estoque');
+    }else if(req.kind==='sale'){
       const a=$('#financeSaleAction').value;const data={unit_price:num('#financeUnit'),qty:num('#financeQty'),restock:!!$('#financeRestock')?.checked,product_id:$('#financeReplacement')?.value||null,new_qty:num('#financeNewQty'),new_unit_price:num('#financeNewUnit'),due_date:$('#financeDue')?.value||null};
       name='finance_change_sale';args={p_id:req.id,p_sale_id:req.data.id,p_revision:req.data.revision||0,p_action:a,p_data:data,p_reason:note};summary+=' · '+$('#financeSalePreview').textContent;
     }else if(req.kind==='settle'){name='finance_settle';args={p_id:req.id,p_pending:req.data.id,p_method:$('#financeMethod').value,p_net:req.data.kind==='card'?num('#financeNet'):null,p_reason:note,p_record_only:$('#financeResolution')?.value==='record'};summary+=' · '+money(Math.abs(req.data.amount));
@@ -132,6 +147,9 @@
     $('#salesHistorySearch').addEventListener('input',()=>{historyLimit=50;renderSalesHistory();});$('#salesHistoryStatus').addEventListener('change',renderSalesHistory);$('#salesHistoryMore').addEventListener('click',()=>{historyLimit+=50;renderSalesHistory();});
     document.addEventListener('click',e=>{
       const b=e.target.closest('button');if(!b)return;const d=b.dataset;
+      if(d.finCustomer)editPurchase(d.finCustomer,'customer');
+      if(d.finPurchase)editPurchase(d.finPurchase,'cancel_purchase');
+      if(d.finMethod!==undefined&&report){const m=report.methods[Number(d.finMethod)];if(m){const rows=report.movements.filter(x=>x.method===m.method);openAction('Movimentações · '+m.method,table(['Data','Descrição','Valor'],rows.map(x=>[stamp(x.occurred_at),esc(x.description),money(x.amount)])),'read',null);$('#financeActionSave').hidden=true;}}
       if(d.finSale)openSale(d.finSale).catch(err=>toast(err.message));
       if(d.finReverse)openAction('Estornar lançamento manual','<p>O registro original permanece e uma movimentação inversa será lançada hoje.</p>'+reason(),'reverse',d.finReverse);
       if(d.finReopen)openAction('Reabrir dia fechado','<p>O fechamento anterior será preservado. Após a correção, faça uma nova conferência e fechamento.</p>'+reason(),'reopen',d.finReopen);

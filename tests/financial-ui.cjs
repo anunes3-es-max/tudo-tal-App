@@ -35,6 +35,19 @@ const report={from:'2026-10-17',to:'2026-10-17',generated_at:'2026-10-17T18:00:0
  const change=calls.find(c=>c.name==='finance_change_sale');assert.equal(change.args.p_data.unit_price,80);assert.equal(change.args.p_revision,0);assert.equal(change.args.p_reason,'Preço digitado incorretamente');assert(!$('#financeActionDialog').open);assert(!$('#financeAuthDialog').open);
  $('#financeClose').click();assert($('#financeActionDialog').open);assert.match($('#financeActionBody').textContent,/25,00/);$('#financeActionCancel').click();
  $('[data-fin-settle]').click();assert.equal($('#financeMethod').value,'Transferência');assert.match($('#financeActionBody').textContent,/não consulta a maquininha/);$('#financeActionCancel').click();
+ // New cash drilldown and explicit empty state.
+ $('[data-fin-method]').click();assert.match($('#financeActionBody').textContent,/Embalagens/);assert.equal($('#financeActionSave').hidden,true);$('#financeActionCancel').click();
+ const savedMethods=report.methods;report.methods=[];await w.renderCash();assert.match($('#financeMethods').textContent,/Nenhuma movimentação/);report.methods=savedMethods;
+ // Identity correction requires fresh auth and includes a snapshot of all purchase revisions.
+ w.editSaleCustomer('s1');assert.match($('#financeActionTitle').textContent,/Editar cliente/);
+ $('#purchaseCustomerName').value='Ana QA';$('#purchaseCustomerPhone').value='86999999999';$('#financeReason').value='Identificar compra antiga';
+ $('#financeActionForm').dispatchEvent(new w.Event('submit',{cancelable:true}));await tick();assert(!calls.some(c=>c.name==='finance_purchase_edit'));
+ $('#financePassword').value='senha-de-teste';$('#financeAuthForm').dispatchEvent(new w.Event('submit',{cancelable:true}));await tick();await tick();
+ const customer=calls.find(c=>c.name==='finance_purchase_edit');assert.equal(customer.args.p_action,'customer');assert.equal(customer.args.p_name,'Ana QA');assert.equal(customer.args.p_revisions.s1,0);
+ $('[data-fin-sale]').click();await tick();$('[data-fin-purchase]').click();assert.match($('#financeActionBody').textContent,/devolvidos ao estoque/);
+ $('#financeReason').value='Compra registrada por engano';$('#financeActionForm').dispatchEvent(new w.Event('submit',{cancelable:true}));await tick();
+ $('#financePassword').value='senha-de-teste';$('#financeAuthForm').dispatchEvent(new w.Event('submit',{cancelable:true}));await tick();await tick();
+ assert(calls.some(c=>c.name==='finance_purchase_edit'&&c.args.p_action==='cancel_purchase'));
  vm.runInContext(`state.sales.push({id:'owner1',owner:'Dona QA',mode:'consignado',repasse:75,repassePaidAmount:0});`,ctx);w.markOwnerPaid(encodeURIComponent('Dona QA'));assert(![...$('#financeMethod').options].some(o=>o.value==='Não informado'));$('#financeActionCancel').click();
  assert.deepEqual(errors,[]);dom.window.close();console.log('PASS: real HTML/scripts, date periods, escaped history, report/PDF selection, sale correction, password failure and success, settlement and owner controls.');
 })().catch(e=>{console.error(e);process.exitCode=1});

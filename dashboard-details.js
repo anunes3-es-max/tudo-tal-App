@@ -8,12 +8,12 @@
  const norm=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
  let selected=0,items=[],sequence=0;
  function row(title,meta,value,extra=''){return '<article class="detail-row"><div><strong>'+esc(title)+'</strong><p class="meta">'+esc(meta)+'</p>'+extra+'</div><strong class="detail-amount">'+value+'</strong></article>';}
- function saleMeta(s){return date(s.date)+' · '+(s.customerName||'Cliente não informado')+' · '+s.payment+' · '+s.qty+' un.';}
+ function saleMeta(s){return date(s.date)+' · '+(s.customerName||'Cliente não identificado — completar cadastro')+' · '+s.payment+' · '+s.qty+' un.';}
  function item(search,html){return{search:norm(search),html};}
  function saleFor(r){return state.sales.find(s=>s.id===r.sale_id)||state.sales.find(s=>r.cart_id&&s.cartId===r.cart_id);}
  function groupVip(rows,payments){
   const groups=new Map();
-  for(const r of rows){const s=saleFor(r),name=s?.customerName||'Cliente não informado',phone=s?.customerPhone||'';
+  for(const r of rows){const s=saleFor(r),name=s?.customerName||'Cliente não identificado — completar cadastro',phone=s?.customerPhone||'';
    // Do not merge people on name alone: no-phone customers stay separated by purchase.
    const key=phone?norm(name)+'|'+phone.replace(/\D/g,''):'purchase|'+(r.cart_id||r.sale_id||r.id);
    if(!groups.has(key))groups.set(key,{name,phone,rows:[],sales:new Map()});
@@ -24,7 +24,7 @@
    const next=pending.map(r=>r.due_date).filter(Boolean).sort()[0],overdue=pending.some(r=>r.due_date<today());
    const history=payments.filter(p=>g.rows.some(r=>r.id===p.receivable_id));
    const bought=[...g.sales.values()];
-   const body='<details class="detail-customer"><summary><span><strong>'+esc(g.name)+'</strong><small>'+esc(g.phone||'Sem WhatsApp · compra separada')+'</small><small>'+(overdue?'Há parcela vencida · ':'')+'Próximo vencimento: '+date(next)+'</small></span><span><strong>'+money(balance)+'</strong><small>Ver compras e parcelas ›</small></span></summary><div class="detail-customer-body"><h3>Compras</h3>'+bought.map(s=>row(s.productName,date(s.date)+' · '+s.qty+' un.',money(s.total))).join('')+'<h3>Parcelas e entrada</h3>'+g.rows.map(r=>row(r.is_down_payment?'Entrada':'Parcela '+r.installment_number+'/'+r.installment_count,'Vencimento: '+date(r.due_date)+' · combinado '+money(r.amount)+' · recebido '+money(r.paid_amount),money(Math.max(0,Number(r.amount)-Number(r.paid_amount))),cent(r.amount)>cent(r.paid_amount)?'<button type="button" class="mini" data-detail-receipt="'+esc(r.id)+'">Receber valor</button>':'<span class="hint">Quitado</span>')).join('')+'<h3>Histórico de recebimentos</h3>'+(history.length?history.map(p=>row(date(p.received_at),p.payment_method,money(p.amount))).join(''):'<p class="hint">Nenhum recebimento registrado.</p>')+'</div></details>';
+   const body='<details class="detail-customer"><summary><span><strong>'+esc(g.name)+'</strong><small>'+esc(g.phone||'Sem WhatsApp · compra separada')+'</small><small>'+(overdue?'Há parcela vencida · ':'')+'Próximo vencimento: '+date(next)+'</small></span><span><strong>'+money(balance)+'</strong><small>Ver compras e parcelas ›</small></span></summary><div class="detail-customer-body"><h3>Compras</h3>'+bought.map(s=>row(s.productName,date(s.date)+' · '+s.qty+' un.',money(s.total),'<button type="button" class="mini" data-fin-customer="'+esc(s.id)+'">Editar cliente</button> <button type="button" class="mini" data-fin-sale="'+esc(s.id)+'">Detalhes / corrigir compra</button>')).join('')+'<h3>Parcelas e entrada</h3>'+g.rows.map(r=>row(r.is_down_payment?'Entrada':'Parcela '+r.installment_number+'/'+r.installment_count,'Vencimento: '+date(r.due_date)+' · combinado '+money(r.amount)+' · recebido '+money(r.paid_amount),money(Math.max(0,Number(r.amount)-Number(r.paid_amount))),cent(r.amount)>cent(r.paid_amount)?'<button type="button" class="mini" data-detail-receipt="'+esc(r.id)+'">Receber valor</button>':'<span class="hint">Quitado</span>')).join('')+'<h3>Histórico de recebimentos</h3>'+(history.length?history.map(p=>row(date(p.received_at),p.payment_method,money(p.amount))).join(''):'<p class="hint">Nenhum recebimento registrado.</p>')+'</div></details>';
    return item([g.name,g.phone,...bought.map(s=>s.productName)].join(' '),body);
   }).filter(Boolean);
  }
@@ -46,7 +46,7 @@
    }else if(key===8){
     rows=(await allRows('finance_pending')).filter(r=>r.kind==='card'&&r.status==='Pendente');if(token!==sequence||state.view!=='detalhes')return;
     amount=sum(rows,r=>Number(r.amount)-Number(r.expected_fee));expected=state.finance?.card_pending;
-    items=rows.map(r=>{const s=state.sales.find(s=>s.id===r.sale_id);return item([r.description,s?.customerName,s?.productName].join(' '),row(s?.customerName||'Cliente não informado',r.description+' · '+(s?.productName||'')+' · '+date(r.created_at),money(Number(r.amount)-Number(r.expected_fee)),'<p class="hint">Bruto '+money(r.amount)+' · taxa prevista '+money(r.expected_fee)+'</p>'));});total.textContent=money(amount);note.textContent='Valor líquido previsto: bruto menos taxas. Confirme o recebimento no Caixa.';
+    items=rows.map(r=>{const s=state.sales.find(s=>s.id===r.sale_id);return item([r.description,s?.customerName,s?.productName].join(' '),row(s?.customerName||'Cliente não identificado — completar cadastro',r.description+' · '+(s?.productName||'')+' · '+date(r.created_at),money(Number(r.amount)-Number(r.expected_fee)),'<p class="hint">Bruto '+money(r.amount)+' · taxa prevista '+money(r.expected_fee)+'</p>'));});total.textContent=money(amount);note.textContent='Valor líquido previsto: bruto menos taxas. Confirme o recebimento no Caixa.';
    }else{
     rows=await allRows('finance_movements');if(token!==sequence||state.view!=='detalhes')return;if(key===7)rows=rows.filter(r=>r.method==='Dinheiro');rows.sort((a,b)=>String(b.occurred_at).localeCompare(String(a.occurred_at)));
     amount=sum(rows,r=>r.amount);expected=key===7?state.finance?.physical:state.finance?.balance;
