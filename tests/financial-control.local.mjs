@@ -20,7 +20,7 @@ try {
   const results=await db.exec(fs.readFileSync(root+'tests/financial-control.sql','utf8'));
   console.log(JSON.stringify(results.at(-1).rows));
   await db.exec('rollback;');
-  for(const f of ['tests/flexible-vip.sql','tests/wardrobe-donations.sql','tests/waitlist.sql','tests/security-catalog.sql','tests/access-control.sql','tests/access-lifecycle.sql','tests/catalog-appearance.sql','tests/purchase-corrections.sql']){
+  for(const f of ['tests/flexible-vip.sql','tests/wardrobe-donations.sql','tests/waitlist.sql','tests/security-catalog.sql','tests/access-control.sql','tests/access-lifecycle.sql','tests/catalog-appearance.sql','tests/purchase-corrections.sql','tests/numbered-customers.sql']){
     const results=await db.exec(fs.readFileSync(root+f,'utf8'));
     console.log(f,JSON.stringify(results.at(-1).rows));
   }

@@ -73,8 +73,8 @@ function setup(){
   el('vipAmount-0').value='150';el('vipAmount-1').value='250';c.vipEditInstallment();assert.deepEqual(Array.from(c.vipCheckoutPayload().plan.installments,r=>r.amount),[150,250]);
   el('vipAmount-0').value='250';el('vipAmount-1').value='150';c.vipEditInstallment();
   env.transport.fail=true;await c.confirmSale();assert.equal(env.rpcCalls.length,1);assert.equal(s.saleCart.length,1);assert(!el('finishCartSaleBtn').disabled);
-  env.transport.fail=false;await c.confirmSale();assert.equal(env.rpcCalls[1].args.p_cart_id,env.rpcCalls[0].args.p_cart_id,'Retry changed sale identifier');
-  assert.equal(env.rpcCalls[1].name,'register_vip_sale_cart');assert.deepEqual(env.rpcCalls[1].args.p_plan.installments.map(r=>r.amount),[250,150]);assert.equal(s.saleCart.length,0);
+  env.transport.fail=false;await c.confirmSale();assert.equal(env.rpcCalls[1].args.p_data.p_cart_id,env.rpcCalls[0].args.p_data.p_cart_id,'Retry changed sale identifier');
+  assert.equal(env.rpcCalls[1].name,'customer_accounts');assert.deepEqual(env.rpcCalls[1].args.p_data.p_plan.installments.map(r=>r.amount),[250,150]);assert.equal(s.saleCart.length,0);
 
   // Installment generation, full deposit, and decimal prices.
   const even=setup(),e=even.context,ed=even.document.ids;

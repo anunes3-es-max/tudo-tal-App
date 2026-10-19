@@ -10,7 +10,7 @@ do $$ declare sale text; rev jsonb; original_schedule jsonb; req uuid:=gen_rando
  perform public.finance_purchase_edit(req,sale,rev,'customer','Cliente corrigido','86999999999','Identificar cliente correto');
  assert (select bool_and(customer_name='Cliente corrigido') from public.sales where cart_id='qa-purchase'),'Identity not propagated';
  assert original_schedule=(select jsonb_agg(to_jsonb(r) order by id) from public.receivable_installments r where cart_id='qa-purchase'),'Schedule changed';
- assert (select count(*)=1 from public.customers where name='Cliente corrigido'),'Customer not registered';
+ assert (select count(*)=0 from public.customers where name='Cliente corrigido'),'Legacy identity must not auto-merge customers';
  perform public.finance_purchase_edit(req,sale,rev,'customer','Cliente corrigido','86999999999','Identificar cliente correto');
  begin perform public.finance_purchase_edit(gen_random_uuid(),sale,rev,'cancel_purchase','','','Cancelar compra teste');raise exception 'Stale revision accepted';exception when sqlstate '22023' then null;end;
  select jsonb_object_agg(id,revision) into rev from public.sales where cart_id='qa-purchase';

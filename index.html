@@ -75,7 +75,8 @@
       <div class="detail-toolbar"><input id="detailSearch" class="input" type="search" aria-label="Buscar nos detalhes" placeholder="Buscar cliente, produto ou descrição"><button id="detailRefresh" class="secondary" type="button">Atualizar detalhes</button></div>
       <p id="detailCount" class="hint"></p><div id="detailList" class="panel"></div>
     </section>
-    <section id="view-dashboard" class="view active">
+    <section id="view-clientes" class="view"><div class="section-head"><h1>Clientes</h1><button data-nav="dashboard">Voltar</button></div><p>Compras do mesmo dia e de dias diferentes reunidas pelo número do cliente. Para cadastrar, informe nome e sobrenome na venda ou ao identificar uma compra antiga.</p><input id="customerDirectorySearch" class="input" type="search" placeholder="Nome, número ou WhatsApp"><button type="button" class="primary" data-new-customer>Novo cliente</button><button type="button" class="mini" data-open-customers>Atualizar fichas</button><div id="customerDirectoryList"></div></section>
+<section id="view-dashboard" class="view active">
       <div class="hero">
         <div>
           <p class="eyebrow">TUDO & TAL • GESTÃO</p>
@@ -84,7 +85,7 @@
         </div>
         <button class="primary" data-nav="produto-form">+ Novo produto</button>
       </div>
-      <div id="dashboardCards" class="cards"></div>
+      <button type="button" class="secondary" data-open-customers>Clientes · fichas e compras</button><div id="dashboardCards" class="cards"></div>
       <div class="panel">
         <div class="panel-title">
           <h2>Ações rápidas</h2>
@@ -529,12 +530,12 @@
   <script src="qr-v1.js?v=2"></script>
   <script src="product-groups.js?v=1"></script>
   <script src="app-1.js?v=19"></script>
-  <script src="cloud-sync.js?v=20"></script>
+  <script src="cloud-sync.js?v=21"></script>
   <script src="app-2.js?v=7"></script>
   <script src="app-3.js?v=14"></script>
-  <script src="customers.js?v=1"></script>
-  <script src="vip-credit.js?v=3"></script>
-  <script src="pdv-cart-v23.js?v=3"></script>
+  <script src="customers.js?v=2"></script>
+  <script src="vip-credit.js?v=4"></script>
+  <script src="pdv-cart-v23.js?v=4"></script>
   <script src="labels-v17.js?v=5"></script>
   <script src="app-4.js?v=11"></script>
   <script src="catalog-theme-admin.js?v=1"></script>
@@ -542,8 +543,8 @@
   <script src="waitlist-admin.js?v=1"></script>
   <script src="analytics.js?v=6"></script>
   <script src="finance-pdf.js?v=1"></script>
-  <script src="finance.js?v=3"></script>
-  <script src="dashboard-details.js?v=2"></script>
+  <script src="finance.js?v=4"></script>
+  <script src="dashboard-details.js?v=3"></script>
   <script src="app-5.js?v=17"></script>
 </body>
 </html>

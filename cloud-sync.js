@@ -56,7 +56,7 @@
   }
   function saleFromCloud(r){
     return {
-      id:r.id,operatorId:r.operator_id||null,operatorName:r.operator_name||"",status:r.status||"Ativa",revision:Number(r.revision||0),originalData:r.original_data||null,repassePaidAmount:Number(r.repasse_paid_amount||0),date:r.sale_date,sku:r.sku,productId:r.product_id||"",productName:r.product_name,
+      id:r.id,customerId:r.customer_id||null,operatorId:r.operator_id||null,operatorName:r.operator_name||"",status:r.status||"Ativa",revision:Number(r.revision||0),originalData:r.original_data||null,repassePaidAmount:Number(r.repasse_paid_amount||0),date:r.sale_date,sku:r.sku,productId:r.product_id||"",productName:r.product_name,
       productCategory:r.product_category||"",productBrand:r.product_brand||"",qty:Number(r.qty||0),unitPrice:Number(r.unit_price||0),listUnitPrice:Number((r.list_unit_price??r.unit_price)||0),total:Number(r.total||0),discountPercent:Number(r.discount_percent||0),discountAmount:Number(r.discount_amount||0),promotionDiscountPercent:Number(r.promotion_discount_percent||0),checkoutDiscountPercent:Number(r.checkout_discount_percent||0),cartId:r.cart_id||"",
       commissionRate:Number(r.commission_rate||0),commission:Number(r.commission||0),
       repasse:Number(r.repasse||0),mode:r.mode,owner:r.owner_name||"Tudo e Tal",
@@ -286,9 +286,8 @@
       p_rate_tier:rateTier||"up_to_20"
     };
     if(payment==="Crediário VIP"&&!vip)throw new Error("Confira o acordo do Crediário VIP.");
-    const {data,error}=payment==="Crediário VIP"
-      ?await c.rpc("register_vip_sale_cart",{p_cart_id:cartId,p_items:params.p_items,p_discount_percent:params.p_discount_percent,p_channel:params.p_channel,p_customer_type:params.p_customer_type,p_purchase_profile:params.p_purchase_profile,p_plan:vip.plan,p_customer_name:vip.customerName,p_customer_phone:vip.customerPhone})
-      :await c.rpc("register_sale_cart_atomic",params);
+    const customerId=payment==="Crediário VIP"?vip.customerId:(state.saleCheckout?.customerId||null);
+    const {data,error}=await c.rpc("customer_accounts",{p_action:"checkout",p_data:{...params,customer_id:customerId,p_plan:vip?.plan||null}});
     if(error)throw error;
     const synced=await syncAll();
     await loadState();
@@ -351,6 +350,7 @@
       await loadState();
       renderDashboard();
       if(state.view==="detalhes")await window.renderDashboardDetail?.();
+      if(state.view==="clientes")await window.openCustomerDirectory?.();
       renderProducts();
       renderLabelOptions();
       renderCash();

@@ -29,6 +29,7 @@
       $('#financePassword').value='';$('#financeAuthDialog').showModal();$('#financePassword').focus();
     });
   }
+  window.financeAuthorize=authorize;
   function cancelAuth(){if(authRequest?.busy)return;const pending=authRequest;authRequest=null;$('#financePassword').value='';$('#financeAuthDialog').close();pending?.reject(Error('Operação cancelada.'));}
   async function submitAuth(e){
     e.preventDefault();if(!authRequest||authRequest.busy)return;authRequest.busy=true;busy(e.target,true);$('#financeAuthError').textContent='Conferindo acesso…';
@@ -99,7 +100,7 @@
     if(action==='cancel_purchase'&&!rows.some(s=>s.status!=='Cancelada')){toast('Esta compra já está cancelada.');return;}
     const customer=action==='customer';
     openAction(customer?'Editar cliente da compra':'Cancelar compra inteira',
-      customer?'<p>A identificação será corrigida em todos os itens desta compra e no crediário. Valores, pagamentos e vencimentos serão preservados.</p><label>Selecionar cliente cadastrado<select id="purchaseCustomerSelect" class="input"><option value="">Novo cliente / preencher abaixo</option></select></label><label>Nome<input id="purchaseCustomerName" class="input" required minlength="2" maxlength="120" value="'+esc(sale.customerName||'')+'"></label><label>WhatsApp (opcional)<input id="purchaseCustomerPhone" class="input" type="tel" value="'+esc(sale.customerPhone||'')+'"></label>'+reason():
+      customer?'<p>A identificação será corrigida em todos os itens desta compra e no crediário. Valores, pagamentos e vencimentos serão preservados.</p><label>Selecionar cliente cadastrado<select id="purchaseCustomerSelect" class="input"><option value="">Novo cliente / preencher abaixo</option></select></label><label>Nome<input id="purchaseCustomerName" class="input" required minlength="2" maxlength="120" data-customer-id="'+esc(sale.customerId||'')+'" value="'+esc(sale.customerName||'')+'"></label><label>WhatsApp (opcional)<input id="purchaseCustomerPhone" class="input" type="tel" value="'+esc(sale.customerPhone||'')+'"></label>'+reason():
       '<p>Todos os itens ativos desta compra serão cancelados e devolvidos ao estoque:</p><ul>'+rows.filter(s=>s.status!=='Cancelada').map(s=>'<li>'+esc(s.productName)+' · '+s.qty+' un. · '+money(s.total)+'</li>').join('')+'</ul><p>O saldo ainda devido será cancelado. Valores já recebidos ficam no histórico e eventual reembolso ficará pendente no Caixa até você confirmar a devolução.</p>'+reason(), 'purchase',data);
     if(customer)window.mountCustomerPicker?.('purchaseCustomerSelect','purchaseCustomerName','purchaseCustomerPhone');
   }
@@ -130,7 +131,7 @@
     }else if(req.kind==='close'){name='finance_close';args={p_id:req.id,p_day:req.data.from,p_counted:num('#financeCounted'),p_note:note,p_token:req.data.token};summary+=' · contado '+money(args.p_counted)+' · diferença '+money(args.p_counted-req.data.cash_balance);
     }else if(req.kind==='owner'){name='finance_pay_owner';args={p_id:req.id,p_owner:req.data.owner,p_expected:req.data.total,p_method:$('#financeMethod').value};summary+=' · '+money(req.data.total);}
     if(!name)return;req.busy=true;busy(e.target,true);
-    try{await authorize(summary);await rpc(name,args);req.busy=false;closeAction();toast('Operação confirmada. Histórico preservado.');await refreshAfter();}
+    try{await authorize(summary);if(req.kind==='purchase'&&req.data.action==='customer'&&window.ensureCustomer){const id=await ensureCustomer('purchaseCustomerName','purchaseCustomerPhone');name='customer_accounts';args={p_action:'assign',p_data:{request_id:req.id,customer_id:id,sale_id:req.data.sale.id,revisions:req.data.revisions,reason:note}};}await rpc(name,args);req.busy=false;closeAction();toast('Operação confirmada. Histórico preservado.');await refreshAfter();}
     catch(err){errorAt($('#financeActionError'),err);req.busy=false;}
     finally{busy(e.target,false);}
   }
