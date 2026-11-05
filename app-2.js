@@ -75,7 +75,7 @@ function resetProductForm(){
   $("#productCondition").value="Novo";
   $("#productOffer").value=stockFilters.group==="vestuario"&&stockFilters.offer==="donation"?"donation":"sale";$("#productDiscount").value=0;
   $("#productFormTitle").textContent="Novo produto";$("#saveProductButton").textContent="Cadastrar produto";
-  state.editPhoto=null;$("#photoPreview").innerHTML="Sem foto";syncProductCatalogFields(true);
+  state.editPhotos=[];state.editPhoto="";renderProductPhotos();$("#photoUploadStatus").textContent="";syncProductCatalogFields(true);
 }
 function prepareProductForm(){if(!$("#productId").value)resetProductForm()}
 window.editProduct=function(id){
@@ -88,16 +88,15 @@ window.editProduct=function(id){
   $("#productCatalogSection").value=TudoTalGroups.group(p).section;
   $("#productAgeGroup").value=p.ageGroup||(p.category==="Moda Adulto"?"adulto":p.category==="Moda Infantil"?"infantil":"");
   $("#productGender").value=p.gender||"";$("#productOffer").value=p.isDonation?"donation":"sale";
-  state.editPhoto=p.photo||"";$("#photoPreview").innerHTML=p.photo?`<img src="${p.photo}" alt="">`:"Sem foto";
+  state.editPhotos=productPhotoList(p);state.editPhoto=state.editPhotos[0]||"";renderProductPhotos();$("#photoUploadStatus").textContent="";
   syncProductCatalogFields();
 };
 window.labelProduct=function(id){nav("etiqueta");$("#labelProduct").value=id;renderLabel()};
 window.sellProduct=function(sku){nav("venda");$("#saleSku").value=sku;lookupSaleSku()};
-async function fileToPhoto(file){if(!file)return null;return new Promise(resolve=>{const reader=new FileReader();reader.onload=e=>{const img=new Image();img.onload=()=>{const max=720,scale=Math.min(1,max/Math.max(img.width,img.height)),c=document.createElement("canvas");c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);c.getContext("2d").drawImage(img,0,0,c.width,c.height);resolve(c.toDataURL("image/jpeg",.72))};img.onerror=()=>resolve(e.target.result);img.src=e.target.result};reader.readAsDataURL(file)})}
 async function saveProduct(e){
-  e.preventDefault();if(state.productSaving)return;
+  e.preventDefault();if(state.productSaving||state.photosLoading)return;
   const id=$("#productId").value,existing=state.products.find(x=>x.id===id),category=$("#productCategory").value,mode=$("#productMode").value;
-  const product={id:existing?.id||uid("prd"),sku:existing?.sku||nextSku(category),name:$("#productName").value.trim(),category,brand:$("#productBrand").value.trim(),size:$("#productSize").value.trim(),color:$("#productColor").value.trim(),condition:$("#productCondition").value,mode,owner:$("#productOwner").value.trim(),ownerPhone:$("#productOwnerPhone").value.trim(),price:Number($("#productPrice").value),discountPercent:Number($("#productDiscount")?.value||0),qty:Number($("#productQty").value),expectedQty:existing?Number($("#productForm").dataset.expectedQty):null,cost:Number($("#productCost").value||0),photo:state.editPhoto||existing?.photo||"",stockType:MULTI_CATEGORIES.has(category)?"Múltiplas unidades":"Peça única",createdAt:existing?.createdAt||nowISO(),updatedAt:nowISO()};
+  const product={id:existing?.id||uid("prd"),sku:existing?.sku||nextSku(category),name:$("#productName").value.trim(),category,brand:$("#productBrand").value.trim(),size:$("#productSize").value.trim(),color:$("#productColor").value.trim(),condition:$("#productCondition").value,mode,owner:$("#productOwner").value.trim(),ownerPhone:$("#productOwnerPhone").value.trim(),price:Number($("#productPrice").value),discountPercent:Number($("#productDiscount")?.value||0),qty:Number($("#productQty").value),expectedQty:existing?Number($("#productForm").dataset.expectedQty):null,cost:Number($("#productCost").value||0),photo:state.editPhotos?.[0]||"",photos:[...(state.editPhotos||[])],stockType:MULTI_CATEGORIES.has(category)?"Múltiplas unidades":"Peça única",createdAt:existing?.createdAt||nowISO(),updatedAt:nowISO()};
   product.active=existing?.active!==false;
   product.catalogSection=inferCatalogSection(category);
   product.ageGroup=product.catalogSection==="vestuario"?$("#productAgeGroup").value:"";

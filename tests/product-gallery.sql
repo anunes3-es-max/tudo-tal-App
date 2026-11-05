@@ -1,0 +1,31 @@
+begin;
+select set_config('request.jwt.claim.sub',(select user_id::text from public.app_members where active and role='admin' limit 1),true);
+set local role authenticated;
+do $$ declare d jsonb:='{"id":"qa-gallery","sku":"qa-gallery","name":"Gallery QA","category":"Perfumes","mode":"proprio","owner_name":"QA","price":100,"qty":2,"photo_url":"https://example.invalid/old.jpg"}'; r jsonb; begin
+ r:=public.save_product(d);
+ assert public.get_catalog_product_photos('qa-gallery')='["https://example.invalid/old.jpg"]'::jsonb,'Legacy cover missing';
+ d:=d||'{"photo_urls":["https://example.invalid/front.jpg","https://example.invalid/back.jpg"]}';
+ r:=public.save_product(d);
+ assert r->>'photo_url'='https://example.invalid/front.jpg','Cover mismatch';
+ assert public.get_catalog_product_photos('qa-gallery')=d->'photo_urls','Gallery order mismatch';
+ assert r->>'qty'='2','Photos changed stock';
+ begin perform public.save_product(d||'{"photo_urls":["javascript:alert(1)"]}');raise exception 'Unsafe image accepted';exception when sqlstate '22023' then null;end;
+ begin perform public.save_product(d||jsonb_build_object('photo_urls',jsonb_build_array('https://a/1','https://a/2','https://a/3','https://a/4','https://a/5','https://a/6','https://a/7')));raise exception 'Too many images accepted';exception when sqlstate '22023' then null;end;
+ assert public.get_catalog_product_photos('qa-gallery')=d->'photo_urls','Rejected save modified gallery';
+ r:=public.save_product(d||'{"photo_urls":[]}');assert r->>'photo_url' is null and public.get_catalog_product_photos('qa-gallery')='[]'::jsonb,'All photos not removed';
+ perform public.save_product(d||'{"catalog_section":"vestuario","qty":0,"expected_qty":2}');
+ assert public.get_catalog_product_photos('qa-gallery')='[]'::jsonb,'Sold clothing photos leaked';
+ perform public.save_product(d||'{"active":false}');
+ assert public.get_catalog_product_photos('qa-gallery')='[]'::jsonb,'Inactive product photos leaked';
+ perform public.save_product(d||'{"active":true,"catalog_section":"loja"}');
+end $$;
+reset role;
+set local role anon;
+do $$ begin
+ assert jsonb_array_length(public.get_catalog_product_photos('qa-gallery'))=2,'Public photo read failed';
+ assert public.get_catalog_product_photos('missing')='[]'::jsonb,'Unknown product returned photos';
+ begin perform public.save_product('{}');raise exception 'Anonymous write allowed';exception when insufficient_privilege then null;end;
+end $$;
+reset role;
+rollback;
+select 'PASS: ordered photos, canonical cover, legacy compatibility, removal, validation, stock preservation, visibility and permissions' result;

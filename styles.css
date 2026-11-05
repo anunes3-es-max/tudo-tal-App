@@ -1274,3 +1274,5 @@ body::before{opacity:.12;background-image:radial-gradient(rgba(120,87,232,.22) .
 .stock-filter-summary .hint{margin:0}
 .stock-filter-summary button{min-height:44px;white-space:nowrap}
 @media(max-width:700px){.stock-clothing-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.stock-group{font-size:11px;padding:9px 11px}.stock-filter-summary{align-items:flex-start}.stock-filter-summary .hint{padding-top:12px}}
+
+.photo-editor-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}.product-photo-editor{display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:1px solid #ddd;border-radius:14px}.product-photo-editor img{width:100%;height:140px;object-fit:contain;background:#fafafa;border-radius:10px}.product-photo-editor button{flex:1;min-height:40px}

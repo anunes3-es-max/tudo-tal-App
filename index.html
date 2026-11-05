@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="Tudo & Tal">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="assets/icon.svg">
-  <link rel="stylesheet" href="styles.css?v=17">
+  <link rel="stylesheet" href="styles.css?v=18">
   <link rel="stylesheet" href="vip-credit.css?v=1">
   <title>Tudo & Tal</title>
   <link rel="stylesheet" href="finance.css?v=1">
@@ -135,10 +135,10 @@
       </div>
       <form id="productForm" class="form panel">
         <input type="hidden" id="productId">
-        <label>Foto
-          <input id="productPhoto" type="file" accept="image/*" capture="environment">
+        <label>Fotos do produto (até 6)
+          <input id="productPhoto" type="file" accept="image/*" multiple>
         </label>
-        <div id="photoPreview" class="photo-preview">Sem foto</div>
+        <p class="hint">Adicione frente, costas e detalhes. A primeira foto será a capa do catálogo.</p><p id="photoUploadStatus" class="hint" role="status"></p><div id="photoPreview" class="photo-editor-grid">Sem foto</div>
         <label>Produto / descrição*
           <input id="productName" required class="input" placeholder="Ex.: Vestido midi floral">
         </label>
@@ -530,8 +530,9 @@
   <script src="qr-v1.js?v=2"></script>
   <script src="product-groups.js?v=1"></script>
   <script src="app-1.js?v=19"></script>
-  <script src="cloud-sync.js?v=21"></script>
-  <script src="app-2.js?v=7"></script>
+  <script src="cloud-sync.js?v=22"></script>
+  <script src="product-photos.js?v=1"></script>
+  <script src="app-2.js?v=8"></script>
   <script src="app-3.js?v=14"></script>
   <script src="customers.js?v=2"></script>
   <script src="vip-credit.js?v=4"></script>
@@ -545,7 +546,7 @@
   <script src="finance-pdf.js?v=1"></script>
   <script src="finance.js?v=4"></script>
   <script src="dashboard-details.js?v=3"></script>
-  <script src="app-5.js?v=17"></script>
+  <script src="app-5.js?v=18"></script>
 </body>
 </html>
 
