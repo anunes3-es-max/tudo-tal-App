@@ -115,6 +115,8 @@
         <div><p class="eyebrow">ESTOQUE</p><h1>Produtos</h1></div>
         <div class="button-row"><button class="secondary" data-nav="espera" type="button">Lista de espera <b class="inline-count hidden" data-waitlist-badge>0</b></button><button class="primary" data-nav="produto-form">+ Cadastrar</button></div>
       </div>
+      <div class="button-row"><button id="refreshStockList" class="secondary" type="button">Atualizar lista</button></div>
+      <p id="stockSyncStatus" class="hint" role="status" aria-live="polite"></p>
       <input id="productSearch" class="input" placeholder="Buscar por peça, SKU, marca ou proprietário">
       <div id="stockGroups" class="stock-groups" role="group" aria-label="Grupos do estoque"></div>
       <div id="stockClothingFilters" class="stock-clothing-filters hidden">
@@ -124,7 +126,7 @@
         <label>Modelo<select id="stockGender" class="input"><option value="">Todos</option><option value="feminino">Feminino</option><option value="masculino">Masculino</option><option value="unissex">Unissex</option></select></label>
         <label>Tamanho<select id="stockSize" class="input"><option value="">Todos</option></select></label>
       </div>
-      <div class="stock-filter-summary"><p id="stockFilterSummary" class="hint" role="status"></p><button id="clearStockFilters" class="ghost" type="button">Limpar filtros</button></div>
+      <div class="stock-filter-summary"><p id="stockFilterSummary" class="hint" role="status"></p><button id="clearStockFilters" class="ghost" type="button">Mostrar todos / limpar filtros</button></div>
       <div id="productList" class="list product-list"></div>
     </section>
 
@@ -529,10 +531,10 @@
   <dialog id="financeAuthDialog" class="finance-dialog" aria-labelledby="financeAuthTitle"><form id="financeAuthForm"><h2 id="financeAuthTitle">Confirmação de administrador</h2><p id="financeAuthSummary"></p><p class="hint">Use a senha da conta com que você entrou na loja.</p><label>Senha da sua conta<input id="financePassword" class="input" type="password" autocomplete="current-password" required></label><p id="financeAuthError" role="alert"></p><div class="finance-dialog-actions"><button id="financeAuthCancel" class="ghost" type="button">Cancelar</button><button class="primary" type="submit">Confirmar senha</button></div></form></dialog>
   <script src="qr-v1.js?v=2"></script>
   <script src="product-groups.js?v=1"></script>
-  <script src="app-1.js?v=19"></script>
+  <script src="app-1.js?v=20"></script>
   <script src="cloud-sync.js?v=22"></script>
   <script src="product-photos.js?v=1"></script>
-  <script src="app-2.js?v=8"></script>
+  <script src="app-2.js?v=9"></script>
   <script src="app-3.js?v=14"></script>
   <script src="customers.js?v=2"></script>
   <script src="vip-credit.js?v=4"></script>

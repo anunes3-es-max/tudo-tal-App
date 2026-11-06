@@ -22,8 +22,10 @@ function renderStockFilters(){
     $("#"+id).value=stockFilters[key];$("#"+id).onchange=e=>{stockFilters[key]=e.target.value;renderProducts()};
   }
   $("#clearStockFilters").onclick=clearStockFilters;
+  const refresh=$("#refreshStockList");if(refresh)refresh.onclick=refreshStockList;
 }
 function selectStockGroup(group){
+  if(group==="all"){clearStockFilters();return;}
   if(group!=="all"&&!TudoTalGroups.groups.some(g=>g.id===group))return;
   Object.assign(stockFilters,{group,condition:"",offer:"all",age:"",gender:"",size:""});renderProducts();
 }
@@ -31,14 +33,41 @@ function clearStockFilters(){
   Object.assign(stockFilters,{group:"all",condition:"",offer:"all",age:"",gender:"",size:""});
   $("#productSearch").value="";renderProducts();
 }
+let stockRefreshTask=null;
+async function refreshStockList(){
+  if(stockRefreshTask)return stockRefreshTask;
+  const message=$("#stockSyncStatus"),button=$("#refreshStockList");
+  if(message)message.textContent="Atualizando todos os produtos…";
+  if(button)button.disabled=true;
+  stockRefreshTask=(async()=>{
+    try{
+      if(!window.tudoTalCloud?.syncAll)throw Error("Sincronização indisponível nesta sessão.");
+      const ok=await window.tudoTalCloud.syncAll();
+      if(!ok)throw Error("Não foi possível atualizar. Confira sua conexão e tente novamente.");
+      await loadState();
+      if(state.view==="produtos")renderProducts();
+      if(message)message.textContent="Lista atualizada: "+state.products.length+" produtos cadastrados.";
+      return true;
+    }catch(error){
+      if(message)message.textContent="Exibindo a última lista disponível. "+error.message;
+      return false;
+    }finally{if(button)button.disabled=false;}
+  })();
+  try{return await stockRefreshTask;}finally{stockRefreshTask=null;}
+}
+function openStockView(previousView){
+  // Returning from an edit preserves the user's place; opening the tab starts at all products.
+  if(previousView!=="produto-form")clearStockFilters();else renderProducts();
+  return refreshStockList();
+}
 function renderProducts(){
   renderStockFilters();
   const arr=stockFilteredProducts();
-  if($("#stockFilterSummary"))$("#stockFilterSummary").textContent=arr.length+" produto(s) · "+arr.reduce((sum,p)=>sum+Number(p.qty||0),0)+" unidade(s) no estoque";
+  if($("#stockFilterSummary"))$("#stockFilterSummary").textContent="Exibindo "+arr.length+" de "+state.products.length+" produtos cadastrados · "+arr.reduce((sum,p)=>sum+Number(p.qty||0),0)+" unidade(s). Inclui produtos sem estoque.";
   $("#productList").innerHTML=arr.length?arr.map(p=>{
     const d=Math.max(0,Math.min(50,Number(p.discountPercent||0)));
     const promoPrice=Number(p.price||0)*(1-d/100);
-    const photo=p.photo?'<img src="'+p.photo+'" alt="">':'<img src="assets/icon.svg" alt="">';
+    const photo=p.photo?'<img src="'+esc(p.photo)+'" alt="" loading="lazy" decoding="async">':'<img src="assets/icon.svg" alt="">';
     const promo=d?'<span class="badge promo-admin-badge">Promo '+String(d).replace(".",",")+'%</span>':'';
     const fragranceProfile=TudoTalGroups.groupId(p)==='perfumes'?({feminino:'Feminino',masculino:'Masculino',unissex:'Unissex'})[p.gender]:'';
     const price=p.isDonation?'<div class="price">Grátis<br><small>Doação</small></div>':d?'<div class="price promo-admin-price"><small>'+money(p.price)+'</small><strong>'+money(promoPrice)+'</strong></div>':'<div class="price">'+money(p.price)+'</div>';
