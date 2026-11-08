@@ -289,10 +289,14 @@
     const customerId=payment==="Crediário VIP"?vip.customerId:(state.saleCheckout?.customerId||null);
     const {data,error}=await c.rpc("customer_accounts",{p_action:"checkout",p_data:{...params,customer_id:customerId,p_plan:vip?.plan||null}});
     if(error)throw error;
-    const synced=await syncAll();
+    let synced=await syncAll();
+    if(!synced){
+      await new Promise(resolve=>setTimeout(resolve,450));
+      synced=await syncAll();
+    }
     await loadState();
     if(synced)status("☁️ Compra, estoque e financeiro confirmados no servidor.","success");
-    else status("Compra confirmada no servidor. Atualize a tela para conferir os novos saldos.","wait");
+    else status("Compra confirmada no servidor. Toque em sincronizar para atualizar os saldos.","wait");
     return data;
   }
 
